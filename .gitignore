@@ -1,2 +1,4 @@
 server
 build
+gcode_tui_daemon.log
+gcode_tui_daemon

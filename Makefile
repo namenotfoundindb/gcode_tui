@@ -1,4 +1,4 @@
-.PHONY: server
+.PHONY: gcode_tui_daemon 
 
-server:
-	g++ src/server/main.cpp -o server -Wall
+gcode_tui_daemon:
+	g++ src/daemon/main.cpp -o gcode_tui_daemon -Wall
