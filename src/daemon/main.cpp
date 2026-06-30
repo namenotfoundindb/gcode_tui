@@ -20,11 +20,17 @@
 #include <fstream>
 #include <chrono>
 
+#include <stdlib.h>
+
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/un.h>
 #include <sys/stat.h>	//for umask()
+
+#define DONT_CHDIR
+
+const short int formatted_time_length = 32;
 
 std::string log_file_path = "gcode_tui_daemon.log";
 std::ofstream log_file;
@@ -46,10 +52,12 @@ int daemonize() {
 		return -2;
 	}
 
+#ifndef DONT_CHDIR
 	//change directory
 	if(chdir("/") < 0) {
 		return -3;
 	}
+#endif
 
 	//reset file permissions
 	umask(0);
@@ -70,7 +78,15 @@ int daemonize() {
 void log(std::string text) {
 	time_t timestamp;
 	time(&timestamp);
-	log_file << ctime(&timestamp) << ": " << text << std::endl;
+
+	//ctime returns a pointer to a nul terminated strings that contains
+	//a newline before the null terminator. here i am removing the neline
+	char* time_string = ctime(&timestamp);
+
+	//Put a null terminator where the newline was (str_length - 1)
+	time_string[strlen(time_string) - 1] = '\0';
+	
+	log_file << time_string << ": " << text << std::endl;
 }
 
 int main_loop() {
@@ -88,6 +104,14 @@ int main() {
 
 	log_file.open(log_file_path);
 
+	log("Started gcode_tui daemon");
+	std::cout << "Reached past logging!" << std::endl;
+
+	sleep(10);
+
+	log("Exiting...\nThank you for using gcode_tui!");
+
+	log_file.close();
 
 	std::cout << "Hello world!" << std::endl;
 	return 0;
