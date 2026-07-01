@@ -29,49 +29,44 @@
 #include <sstream>
 #include <map>
 
-class StringCommand {
-	public:
-		std::string data;
-		std::string command;
-		std::map<std::string, std::string> arguments;
+#include "StringCommand.h"
 
-		StringCommand(std::string str) {
-			data = str;
-			//go trough the string and find key-value pairs like:
-			//send file:/home/casi/test.gcode
-			//^-command
-			//      ^-argument key
-			//               ^-argument value
+StringCommand::StringCommand(std::string str) {
+	data = str;
+	//go trough the string and find key-value pairs like:
+	//send file:/home/casi/test.gcode
+	//^-command
+	//      ^-argument key
+	//               ^-argument value
 
-			std::stringstream ss(data);
-			//The first word is the command itselft
-			ss >> command;
+	std::stringstream ss(data);
+	//The first word is the command itselft
+	ss >> command;
 
-			std::string word;
+	std::string word;
 
-			while (ss >> word) {
-				int i;
-				for (i = 0; i < int(word.length()); i++) {
-					//If we found the  delimiter
-					if (word[i] == ':') break;
-				}
-				
-				std::string key, value;
-				key = word.substr(0, i);
-				//i + 1 to skip over ':'
-				value = word.substr(i + 1, word.length() - 
-						i - 1);
-
-				arguments.insert({key, value});
-			}
+	while (ss >> word) {
+		int i;
+		for (i = 0; i < int(word.length()); i++) {
+			//If we found the  delimiter
+			if (word[i] == ':') break;
 		}
 
-		void print() {
-			std::cout << "command: " << command << std::endl;
+		std::string key, value;
+		key = word.substr(0, i);
+		//i + 1 to skip over ':'
+		value = word.substr(i + 1, word.length() - 
+				i - 1);
 
-			for (auto argument : arguments) {
-				std::cout << argument.first << ":" 
-					<< argument.second << std::endl;
-			}
-		}
-};
+		arguments.insert({key, value});
+	}
+}
+
+void StringCommand::print() {
+	std::cout << "command: " << command << std::endl;
+
+	for (auto argument : arguments) {
+		std::cout << argument.first << ":" 
+			<< argument.second << std::endl;
+	}
+}
