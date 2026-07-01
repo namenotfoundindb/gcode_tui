@@ -18,4 +18,6 @@
 //In this file program global variables are *declared*
 #include <string>
 
+#define BUFFER_SIZE 256
+
 std::string daemon_socket_addres = "/run/gcode_tui_daemon.sock";

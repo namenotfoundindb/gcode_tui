@@ -27,10 +27,12 @@
 #include <sys/un.h>
 #include <sys/stat.h>	//for umask()
 #include <sys/socket.h>
+#include <termios.h>
 
 #include "../commons.h"
 #include "daemon_functions.h"
 #include "StringCommand.h"
+#include "Printer.h"
 
 //#define DONT_CHDIR
 
@@ -81,6 +83,12 @@ int main() {
 		return client_socket;
 	}
 
+	Printer printer("/dev/ttyUSB0", B115200);
+	if (printer.send("G28\n") < 0) 
+		log("ERROR sending gcode!");
+	log("Send one line of gcode");
+
+	close(printer.fd);
 	sleep(10);
 
 	log("Exiting...\nThank you for using gcode_tui!");

@@ -20,4 +20,6 @@
 
 #include <string>
 
+#define BUFFER_SIZE 256
+
 extern std::string daemon_socket_addres;
