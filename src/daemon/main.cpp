@@ -30,6 +30,7 @@
 
 #include "../commons.h"
 #include "daemon_functions.h"
+#include "StringCommand.h"
 
 //#define DONT_CHDIR
 

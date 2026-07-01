@@ -3,4 +3,5 @@
 gcode_tui_daemon:
 	g++ src/daemon/main.cpp src/commons.cpp\
 		src/daemon/daemon_functions.cpp\
+		src/daemon/StringCommand.cpp\
 		-o gcode_tui_daemon -Wall
