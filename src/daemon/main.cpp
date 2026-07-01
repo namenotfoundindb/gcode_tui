@@ -27,13 +27,24 @@
 #include <signal.h>
 #include <sys/un.h>
 #include <sys/stat.h>	//for umask()
+#include <sys/socket.h>
 
-#define DONT_CHDIR
+#include "../commons.h"
+
+//#define DONT_CHDIR
 
 const short int formatted_time_length = 32;
 
+#ifdef DONT_CHDIR
 std::string log_file_path = "gcode_tui_daemon.log";
+#else 
+std::string log_file_path = "/var/log/gcode_tui_daemon.log";
+#endif
+
 std::ofstream log_file;
+
+int client_socket;
+int client;
 
 int daemonize() {
 	signal(SIGPIPE, SIG_IGN);
@@ -89,8 +100,28 @@ void log(std::string text) {
 	log_file << time_string << ": " << text << std::endl;
 }
 
+int init_socket() {
+	//create the socket
+	int client_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+
+	sockaddr_un addr{};
+
+	addr.sun_family = AF_UNIX;
+	strcpy(addr.sun_path, daemon_socket_addres.c_str());
+
+	//unbind the previous socket (if there was any)
+	unlink(daemon_socket_addres.c_str());
+
+	//Bind the socket
+	bind(client_socket, (sockaddr*)&addr, sizeof(addr));
+
+	return client_socket;
+}
+
 int main_loop() {
-	return 0;
+	while (true) {
+		
+	}
 }
 
 int main() {
@@ -105,12 +136,18 @@ int main() {
 	log_file.open(log_file_path);
 
 	log("Started gcode_tui daemon");
-	std::cout << "Reached past logging!" << std::endl;
+
+	client_socket = init_socket();
+	if (client_socket < 0) {
+		log("ERROR initializing client socket!");
+		return client_socket;
+	}
 
 	sleep(10);
 
 	log("Exiting...\nThank you for using gcode_tui!");
 
+	unlink(daemon_socket_addres.c_str());
 	log_file.close();
 
 	std::cout << "Hello world!" << std::endl;
