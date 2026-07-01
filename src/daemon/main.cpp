@@ -86,7 +86,7 @@ int main() {
 	Printer printer("/dev/ttyUSB0", B115200);
 	if (printer.send("G28\n") < 0) 
 		log("ERROR sending gcode!");
-	log("Send one line of gcode");
+	else log("Send one line of gcode");
 
 	close(printer.fd);
 	sleep(10);
