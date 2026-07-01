@@ -1,4 +1,4 @@
-Copyright 2025-2026 namenotfoundindb. All rights reserved
+Copyright 2026 namenotfoundindb. All rights reserved
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

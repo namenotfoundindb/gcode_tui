@@ -15,9 +15,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//In this file program global variables are *externed*
-#pragma once
-
+//In this file program global variables are *declared*
 #include <string>
 
-extern std::string daemon_socket_addres;
+std::string daemon_socket_addres = "/run/gcode_tui_daemon.sock";

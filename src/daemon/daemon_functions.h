@@ -15,9 +15,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//In this file program global variables are *externed*
 #pragma once
 
-#include <string>
-
-extern std::string daemon_socket_addres;
+int daemonize();
+int init_socket();
