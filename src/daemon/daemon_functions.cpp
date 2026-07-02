@@ -77,5 +77,7 @@ int init_socket() {
 	//Bind the socket
 	bind(client_socket, (sockaddr*)&addr, sizeof(addr));
 
+	listen(client_socket, 5);
+
 	return client_socket;
 }

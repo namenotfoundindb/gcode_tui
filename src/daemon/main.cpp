@@ -89,9 +89,30 @@ int main_loop(Printer printer) {
 	return 0;
 }
 
+int client_loop() {
+	char* buffer = ( char* ) malloc(BUFFER_SIZE);
+
+	while (true) {
+		client = accept(client_socket, nullptr, nullptr);
+
+		if (client < 0) log("ERROR accepting client!");
+		else log("Accepted client");
+
+		strcat(buffer, "Hello client! This is gcode_tui_daemon!\n");
+		write(client, buffer, strlen(buffer));
+		free(buffer);
+		log("Sent message to client");
+
+		close(client);
+		log("Ended connection with client");
+
+		return 0;
+	}	
+}
+
 int main() {
 	ssize_t error_num = 0;
-	//error_num = daemonize();
+	error_num = daemonize();
 
 	if (error_num < 0) {
 		std::cout << "ERROR daemonizing!" << std::endl;
@@ -110,7 +131,7 @@ int main() {
 
 	Printer printer("/dev/ttyUSB0", B115200);
 
-	main_loop(printer);
+	client_loop();
 
 	close(printer.fd);
 
