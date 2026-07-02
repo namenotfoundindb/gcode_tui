@@ -58,15 +58,40 @@ void log(std::string text) {
 	log_file << time_string << ": " << text << std::endl;
 }
 
-int main_loop() {
+int main_loop(Printer printer) {
+	ssize_t error_num;
+	std::string send_buffer;
+	char* buffer = ( char* ) malloc(BUFFER_SIZE);
+
 	while (true) {
-		
+		std::cout << "SEND: ";
+		std::cin >> send_buffer;
+		if (send_buffer == "exit") { return 0; free(buffer); }
+		send_buffer.append(1, '\n');
+
+		printer.send(send_buffer);
+
+		do {
+			error_num = printer.read_line(buffer);
+
+			if (error_num < 0) {
+				std::cout << "ERROR reading printer's response!"
+					<< std::endl;
+				free(buffer);
+				return error_num;
+			}
+
+			std::cout << "RECV: " << buffer;
+		} while (!printer.is_response_ok(buffer) && error_num > 0);
 	}
+
+	free(buffer);
+	return 0;
 }
 
 int main() {
-	ssize_t error_num;
-	error_num = daemonize();
+	ssize_t error_num = 0;
+	//error_num = daemonize();
 
 	if (error_num < 0) {
 		std::cout << "ERROR daemonizing!" << std::endl;
@@ -84,9 +109,8 @@ int main() {
 	}
 
 	Printer printer("/dev/ttyUSB0", B115200);
-	if (printer.send("G28\n") < 0) 
-		log("ERROR sending gcode!");
-	else log("Send one line of gcode");
+
+	main_loop(printer);
 
 	close(printer.fd);
 	sleep(10);
