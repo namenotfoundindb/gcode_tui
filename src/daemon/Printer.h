@@ -20,14 +20,26 @@
 #include <stdint.h>
 #include <string>
 #include <termios.h>
+#include <time.h>
 
 class Printer {
 	public:
 		std::string path;
 		int fd;
 		struct termios serial_settings;
+		//how much time to wait for data if there is none from the 
+		//printer
+		//at the moment these are the default values
+		struct timespec wait_for_data_delay = {
+			//0 seconds
+			.tv_sec = 0,
+			//and 25 miliseconds
+			.tv_nsec = 25000000
+		};
 
 		void read_garbage();
 		Printer(std::string path, uint64_t badurate);
 		ssize_t send(std::string gcode);
+		ssize_t read_char(char* ch);
+		ssize_t read_line(char* buffer);
 };

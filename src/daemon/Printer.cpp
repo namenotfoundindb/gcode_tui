@@ -21,6 +21,7 @@
 #include <termios.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "../commons.h"
 #include "Printer.h"
@@ -98,4 +99,23 @@ Printer::Printer(std::string path, uint64_t baudrate) {
 
 ssize_t Printer::send(std::string gcode) {
 	return write(fd, gcode.c_str(), gcode.length());
+}
+
+ssize_t Printer::read_char(char* ch) {
+	ssize_t error_num;
+
+	do {
+		error_num = read(fd, ch, 1);
+
+		//if the error_num is not that there is no data (EAGAIN) return
+		//the error_num
+		if (error_num < 0 && error_num != EAGAIN) return error_num;
+
+		//if there is no data (ie error_num == EAGAIN) wait for some
+		else if (error_num == EAGAIN) nanosleep(&wait_for_data_delay,
+				NULL);
+
+	//repeat until there is some data
+	} while (error_num != EAGAIN);
+	return -1;
 }
