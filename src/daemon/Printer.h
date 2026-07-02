@@ -42,4 +42,5 @@ class Printer {
 		ssize_t send(std::string gcode);
 		ssize_t read_char(char* ch);
 		ssize_t read_line(char* buffer);
+		bool is_response_ok(char* buffer);
 };

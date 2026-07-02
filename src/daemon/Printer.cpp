@@ -142,3 +142,14 @@ ssize_t Printer::read_line(char* buffer) {
 	}
 
 }
+
+//checks if the printers response contains 'ok' in the first two bytes
+bool Printer::is_response_ok(char* buffer) {
+	//only check the first two bytes because some gcode commands
+	//send back a line containing ok and then a bunch of other stuff,
+	//so we can't compare the whole line
+	if (buffer[0] != 'o') return false;
+	if (buffer[1] != 'k') return false;
+
+	return true;
+}
