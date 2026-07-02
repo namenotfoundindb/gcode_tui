@@ -119,3 +119,26 @@ ssize_t Printer::read_char(char* ch) {
 	} while (error_num != EAGAIN);
 	return -1;
 }
+
+ssize_t Printer::read_line(char* buffer) {
+	ssize_t error_num;
+	char ch;
+	int strlen = 0;
+
+	buffer[0] = '\0';
+
+	while (true) {
+		//read one character at a time
+		error_num = read_char(&ch);
+		if (error_num < 0) return error_num;
+
+		//append them to the end of the buffer
+		//NOTE: cannot use strcat as that function expects a null
+		//terminated string. here we append a character not a string
+		buffer[strlen] = ch;
+		strlen++;
+
+		if (ch == '\n') { buffer[strlen] = '\0'; return 0; }
+	}
+
+}
