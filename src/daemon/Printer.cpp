@@ -26,14 +26,16 @@
 #include "../commons.h"
 #include "Printer.h"
 
+#define NO_DATA_PRESENT -1
+
 void Printer::read_garbage() {
 	//Read all the garbage that the printer says, until an 
-	//EAGAIN, thats when there is no more data to read
+	//NO_DATA_PRESENT, thats when there is no more data to read
 	char* buffer = ( char* ) malloc(BUFFER_SIZE);
 	ssize_t error_num;
 	do {
 		error_num = read(fd, buffer, BUFFER_SIZE);
-	} while (error_num != EAGAIN && error_num > 0);
+	} while (error_num != NO_DATA_PRESENT && error_num > 0);
 	free(buffer);
 }
 
@@ -107,17 +109,18 @@ ssize_t Printer::read_char(char* ch) {
 	do {
 		error_num = read(fd, ch, 1);
 
-		//if the error_num is not that there is no data (EAGAIN) return
+		//if the error_num is not that there is no data (NO_DATA_PRESENT) return
 		//the error_num
-		if (error_num < 0 && error_num != EAGAIN) return error_num;
+		if (error_num < 0 && error_num != NO_DATA_PRESENT)
+			return error_num;
 
-		//if there is no data (ie error_num == EAGAIN) wait for some
-		else if (error_num == EAGAIN) nanosleep(&wait_for_data_delay,
-				NULL);
+		//if there is no data (ie error_num == NO_DATA_PRESENT) wait for some
+		else if (error_num == NO_DATA_PRESENT) 
+			nanosleep(&wait_for_data_delay, NULL);
 
 	//repeat until there is some data
-	} while (error_num != EAGAIN);
-	return -1;
+	} while (error_num == NO_DATA_PRESENT);
+	return 1;
 }
 
 ssize_t Printer::read_line(char* buffer) {

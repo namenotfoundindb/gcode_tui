@@ -75,8 +75,8 @@ int main_loop(Printer printer) {
 			error_num = printer.read_line(buffer);
 
 			if (error_num < 0) {
-				std::cout << "ERROR reading printer's response!"
-					<< std::endl;
+				std::cout << "ERROR reading printer's response: "
+					<< error_num << std::endl;
 				free(buffer);
 				return error_num;
 			}
@@ -113,7 +113,6 @@ int main() {
 	main_loop(printer);
 
 	close(printer.fd);
-	sleep(10);
 
 	log("Exiting...\nThank you for using gcode_tui!");
 
