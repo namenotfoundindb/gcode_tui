@@ -82,7 +82,7 @@ int main_loop(Printer printer) {
 			}
 
 			std::cout << "RECV: " << buffer;
-		} while (!printer.is_response_ok(buffer) && error_num > 0);
+		} while (!printer.is_response_ok(buffer) && error_num == 0);
 	}
 
 	free(buffer);
@@ -112,7 +112,7 @@ int client_loop() {
 
 int main() {
 	ssize_t error_num = 0;
-	error_num = daemonize();
+	//error_num = daemonize();
 
 	if (error_num < 0) {
 		std::cout << "ERROR daemonizing!" << std::endl;
@@ -128,10 +128,10 @@ int main() {
 		log("ERROR initializing client socket!");
 		return client_socket;
 	}
-
+	
 	Printer printer("/dev/ttyUSB0", B115200);
-
-	client_loop();
+	
+	main_loop(printer);
 
 	close(printer.fd);
 

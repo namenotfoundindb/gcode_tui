@@ -24,17 +24,28 @@
 #include <time.h>
 #include <errno.h>
 
+#include <iostream>
+
 #include "../commons.h"
 #include "Printer.h"
 
-void Printer::read_garbage() {
+int Printer::read_garbage() {
 	//Read all the garbage that the printer says, until an 
 	//EAGAIN, thats when there is no more data to read
 	char* buffer = ( char* ) malloc(BUFFER_SIZE);
+	int error_num = 0;
 	do {
-		read(fd, buffer, BUFFER_SIZE);
-	} while (errno == EAGAIN);
+		if (read(fd, buffer, 1) < 0) {
+			error_num = errno;
+			if (error_num != EAGAIN) {
+				free(buffer);
+				return -1;
+			}
+		}
+
+	} while (error_num != EAGAIN);
 	free(buffer);
+	return 0;
 }
 
 Printer::Printer(std::string path, uint64_t baudrate) {
@@ -102,23 +113,21 @@ ssize_t Printer::send(std::string gcode) {
 }
 
 ssize_t Printer::read_char(char* ch) {
-	ssize_t error_num;
+	int error_num;
 
 	do {
-		error_num = read(fd, ch, 1);
+		if (read(fd, ch, 1) == -1) {
+			error_num = errno;
+			if (error_num != EAGAIN) return -1;
+		
+			//if there is no data (ie errno == EAGAIN) wait for some
+			else if (error_num == EAGAIN) 
+				nanosleep(&wait_for_data_delay, NULL);
+		}
 
-		//if the error_num is not that there is no data (NO_DATA_PRESENT) return
-		//the error_num
-		if (error_num < 0 && errno != EAGAIN)
-			return -1;
-
-		//if there is no data (ie errno == EAGAIN) wait for some
-		else if (errno == EAGAIN) 
-			nanosleep(&wait_for_data_delay, NULL);
-
-	//repeat until there is some data
-	} while (errno == EAGAIN);
-	return -1;
+		else error_num = 0;
+	} while (error_num == EAGAIN);
+	return 0;
 }
 
 ssize_t Printer::read_line(char* buffer) {

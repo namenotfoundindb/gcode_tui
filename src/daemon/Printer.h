@@ -37,7 +37,7 @@ class Printer {
 			.tv_nsec = 25000000
 		};
 
-		void read_garbage();
+		int read_garbage();
 		Printer(std::string path, uint64_t badurate);
 		ssize_t send(std::string gcode);
 		ssize_t read_char(char* ch);
