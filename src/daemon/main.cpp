@@ -91,20 +91,53 @@ int main_loop(Printer printer) {
 
 int client_loop() {
 	char* buffer = ( char* ) malloc(BUFFER_SIZE);
+	strcpy(buffer, "Hello client! This is gcode_tui_daemon!\n");
+	int error_num = 0;
+	ssize_t read_bytes = 0;
 
 	while (true) {
 		client = accept(client_socket, nullptr, nullptr);
 
-		if (client < 0) log("ERROR accepting client!");
+		if (client < 0) {
+			log("ERROR accepting client!");
+			return -1;
+		}
+
 		else log("Accepted client");
 
-		strcat(buffer, "Hello client! This is gcode_tui_daemon!\n");
-		write(client, buffer, strlen(buffer));
-		free(buffer);
-		log("Sent message to client");
+		while (true) {
+			read_bytes = read(client, buffer, BUFFER_SIZE);
+
+			if (read_bytes < 0) {
+				log("ERROR reading from the client!");
+				free(buffer);
+				return -1;
+			}
+
+			//read does not put a null terminator at the end, so i 
+			//put it myself
+			buffer[read_bytes] = '\0';
+
+			if (strcmp(buffer, "exit\n") == 0) {
+				log("Ended connection with client");
+				free(buffer);
+				return 0;
+			}
+
+			//echo back what the client sent
+			if (write(client, buffer, strlen(buffer)) < 0) {
+				log("ERROR writing to the client!");
+				free(buffer);
+				return -1;
+			}
+
+			log("Sent message to client");
+			sleep(1);
+		}
 
 		close(client);
 		log("Ended connection with client");
+		free(buffer);
 
 		return 0;
 	}	
@@ -112,7 +145,7 @@ int client_loop() {
 
 int main() {
 	ssize_t error_num = 0;
-	//error_num = daemonize();
+	error_num = daemonize();
 
 	if (error_num < 0) {
 		std::cout << "ERROR daemonizing!" << std::endl;
@@ -131,7 +164,7 @@ int main() {
 	
 	Printer printer("/dev/ttyUSB0", B115200);
 	
-	main_loop(printer);
+	client_loop();
 
 	close(printer.fd);
 
