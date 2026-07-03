@@ -41,6 +41,25 @@ const short int formatted_time_length = 32;
 std::string log_file_path = "/var/log/gcode_tui_daemon.log";
 std::ofstream log_file;
 
+std::string help_text = "\
+gcode_tui: Program that drips gcode in the background to a machine\n\
+Copyright (C) 2026 namenotfoundindb\n\
+\n\
+COMMANDS AND ARGUMENTS:\n\
+  Commands work like you think the do, just type them in!\n\
+  Arguments work by typing the argument name, a \':\' and then the\n\
+value, not separated by spaces (at the moment we do not support spaces).\n\
+EXAMPLE:\n\
+   echo text:Hello\n\
+\n\
+SUPPORTED COMMANDS:\n\
+  help - display this help message\n\
+  echo - print out text\n\
+  exit - disconnect from the daemon\n\
+  shutdown - shutdown the daemon\n\
+\n\
+";
+
 int client_socket;
 int client;
 
@@ -118,29 +137,44 @@ int client_loop() {
 			//put it myself
 			buffer[read_bytes] = '\0';
 
-			if (strcmp(buffer, "exit\n") == 0) {
+			StringCommand client_command({std::string(buffer)});
+
+			if (client_command.command == "exit") {
+				close(client);
 				log("Ended connection with client");
+				break;
+			}
+
+			else if (client_command.command == "shutdown") {
+				log("Shuting down gcode_tui_daemon...");
 				free(buffer);
+				close(client);
 				return 0;
 			}
 
-			//echo back what the client sent
-			if (write(client, buffer, strlen(buffer)) < 0) {
-				log("ERROR writing to the client!");
-				free(buffer);
-				return -1;
+			else if (client_command.command == "help") 
+				write(client, help_text.c_str(),
+					help_text.length());
+
+			else if (client_command.command == "echo") {
+				write(client,
+					client_command.arguments["text"].c_str(),
+					client_command.arguments["text"].length());
+				write(client, "\n", 1);
 			}
+
+			else write(client, "Unknown command! Try \"help\"\n",
+					28);
 
 			log("Sent message to client");
 			sleep(1);
 		}
 
-		close(client);
-		log("Ended connection with client");
-		free(buffer);
-
-		return 0;
 	}	
+	close(client);
+	free(buffer);
+
+	return 0;
 }
 
 int main() {
