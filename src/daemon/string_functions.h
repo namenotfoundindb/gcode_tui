@@ -17,14 +17,5 @@
 
 #pragma once
 #include <string>
-#include <map>
 
-class StringCommand {
-	public:
-		std::string data;
-		std::string command;
-		std::map<std::string, std::string> arguments;
-
-		int parse(std::string str);
-		void print();
-};
+std::string extract_first_word(std::string* str);

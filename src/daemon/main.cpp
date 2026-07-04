@@ -48,9 +48,10 @@ Copyright (C) 2026 namenotfoundindb\n\
 COMMANDS AND ARGUMENTS:\n\
   Commands work like you think the do, just type them in!\n\
   Arguments work by typing the argument name, a \':\' and then the\n\
-value, not separated by spaces (at the moment we do not support spaces).\n\
-EXAMPLE:\n\
+value. If the value contains spaces, put the whole value in quotes.\n\
+EXAMPLES:\n\
    echo text:Hello\n\
+   echo text:\"Hello world!\"\n\
 \n\
 SUPPORTED COMMANDS:\n\
   help - display this help message\n\
@@ -137,9 +138,12 @@ int client_loop() {
 			//put it myself
 			buffer[read_bytes] = '\0';
 
-			StringCommand client_command({std::string(buffer)});
+			StringCommand client_command;
+			if (client_command.parse({std::string(buffer)}) != 0) {
+				write(client, "ERROR parsing command!\n", 22);
+			}	
 
-			if (client_command.command == "exit") {
+			else if (client_command.command == "exit") {
 				close(client);
 				log("Ended connection with client");
 				break;

@@ -26,40 +26,98 @@
 
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <map>
+#include <vector>
 
 #include "StringCommand.h"
+#include "string_functions.h"
 
-StringCommand::StringCommand(std::string str) {
-	data = str;
+//Parse a string into the StringCommand object
+int StringCommand::parse(std::string str) {
 	//go trough the string and find key-value pairs like:
 	//send file:/home/casi/test.gcode
 	//^-command
 	//      ^-argument key
 	//               ^-argument value
+	
+	//if there is a newline at the end, erase it
+	if (str[str.length() - 1] == '\n') str.erase(str.length() - 1, 1);
 
-	std::stringstream ss(data);
-	//The first word is the command itselft
-	ss >> command;
+	data = str;
+	command = extract_first_word(&str);
 
-	std::string word;
+	if (str == "") return 0;
 
-	while (ss >> word) {
-		int i;
-		for (i = 0; i < int(word.length()); i++) {
-			//If we found the  delimiter
-			if (word[i] == ':') break;
+	//vector to store the key argument pairs
+	//temporaraly
+	std::vector<std::string> key_argument_pairs;
+
+	int delimiter_pos = 0;
+	int last_quote_pos = 0;
+
+	bool has_quotes = false;
+
+	while (str.length() != 0) {
+		std::string key_argument_pair;
+		delimiter_pos = str.find(':');
+
+		has_quotes = str[delimiter_pos + 1] == '\"';
+
+		if (has_quotes) {
+			//delete the first quote
+			str.erase(delimiter_pos + 1, 1);
+
+			//+2 to skip over the first quote
+			last_quote_pos = str.find('\"', 
+					delimiter_pos + 2);
+
+			//save the key argument pair
+			key_argument_pair = str.substr(0, 
+					last_quote_pos);
+
+			//delete this part of the string, and
+			//leave the rest for the next iteration
+
+			//check if the last part contains a space
+			if (str[str.length() - 1] == ' ') 
+				//+2 to delete the last quoate and space
+				str.erase(0, last_quote_pos + 2);
+			else str.erase(0, last_quote_pos + 1);
 		}
 
-		std::string key, value;
-		key = word.substr(0, i);
-		//i + 1 to skip over ':'
-		value = word.substr(i + 1, word.length() - 
-				i - 1);
+		else {
+			key_argument_pair = extract_first_word(
+					&str);
+		}
 
-		arguments.insert({key, value});
+		key_argument_pairs.push_back(key_argument_pair);
 	}
+	
+	//string to store the values temporaraly
+	std::string key;
+	std::string argument;
+
+	//empty it of the previous arguments
+	arguments.clear();
+	
+	for (auto key_argument_pair : key_argument_pairs) {
+		delimiter_pos = key_argument_pair.find(':');
+
+		//get the key from the string
+		key = key_argument_pair.substr(0, 
+				delimiter_pos);
+
+		//get the argument from the string
+		//start at delimiter_pos +1 to skip over the 
+		//delimiter
+		argument = key_argument_pair.substr(
+				delimiter_pos + 1,
+				key_argument_pair.length());
+
+		arguments.insert({key, argument});
+	}
+
+	return 0;
 }
 
 void StringCommand::print() {

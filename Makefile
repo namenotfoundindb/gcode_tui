@@ -5,6 +5,7 @@ gcode_tui_daemon:
 		src/daemon/daemon_functions.cpp\
 		src/daemon/StringCommand.cpp\
 		src/daemon/Printer.cpp\
+		src/daemon/string_functions.cpp\
 		-o gcode_tui_daemon -Wall
 
 debug:
@@ -12,5 +13,6 @@ debug:
 		src/daemon/daemon_functions.cpp\
 		src/daemon/StringCommand.cpp\
 		src/daemon/Printer.cpp\
+		src/string_functions.cpp\
 		-o gcode_tui_daemon -Wall --debug
 

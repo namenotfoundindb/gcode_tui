@@ -15,16 +15,29 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#pragma once
 #include <string>
-#include <map>
 
-class StringCommand {
-	public:
-		std::string data;
-		std::string command;
-		std::map<std::string, std::string> arguments;
+//move the first word from one string to another
+//(and also delete the space in the source string)
+std::string extract_first_word(std::string* str) {
+	//find the first space
+	size_t pos = str->find(' ');
+	std::string sub;
 
-		int parse(std::string str);
-		void print();
-};
+	//if there is a space in the string
+	if (pos != std::string::npos) {
+		//make a substring containing the first word
+		sub = str->substr(0, pos);
+
+		//assign the rest of the string to the original string
+		*str = str->substr(pos + 1);
+	}
+
+	//else if the string contains one word (no spaces);
+	else {
+		//return the original string
+		sub = *str;
+		*str = "";
+	}
+	return sub;
+}
