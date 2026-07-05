@@ -24,6 +24,7 @@
 
 class Printer {
 	public:
+		bool initialized = false;
 		std::string path;
 		int fd;
 		struct termios serial_settings;
@@ -38,9 +39,10 @@ class Printer {
 		};
 
 		int read_garbage();
-		Printer(std::string path, uint64_t badurate);
+		int init(std::string path, uint64_t badurate);
 		ssize_t send(std::string gcode);
 		ssize_t read_char(char* ch);
 		ssize_t read_line(char* buffer);
 		bool is_response_ok(char* buffer);
+		void disconnect();
 };

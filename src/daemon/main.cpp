@@ -112,8 +112,9 @@ int main_loop(Printer printer) {
 int client_loop() {
 	char* buffer = ( char* ) malloc(BUFFER_SIZE);
 	strcpy(buffer, "Hello client! This is gcode_tui_daemon!\n");
-	int error_num = 0;
 	ssize_t read_bytes = 0;
+	Printer printer;
+	
 
 	while (true) {
 		client = accept(client_socket, nullptr, nullptr);
@@ -153,6 +154,7 @@ int client_loop() {
 				log("Shuting down gcode_tui_daemon...");
 				free(buffer);
 				close(client);
+				printer.disconnect();
 				return 0;
 			}
 
@@ -165,6 +167,15 @@ int client_loop() {
 					client_command.arguments["text"].c_str(),
 					client_command.arguments["text"].length());
 				write(client, "\n", 1);
+			}
+
+			else if (client_command.command == "init") {
+				//at the moment the baudrate is fixed
+				//and there is no check to make sure the 
+				//argument "printer" exists
+				printer.init(client_command.arguments["printer"]
+						, B115200);
+				write(client, "Initilized printer\n", 19);
 			}
 
 			else write(client, "Unknown command! Try \"help\"\n",
@@ -200,11 +211,7 @@ int main() {
 		return client_socket;
 	}
 	
-	Printer printer("/dev/ttyUSB0", B115200);
-	
 	client_loop();
-
-	close(printer.fd);
 
 	log("Exiting...\nThank you for using gcode_tui!");
 

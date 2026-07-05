@@ -48,7 +48,7 @@ int Printer::read_garbage() {
 	return 0;
 }
 
-Printer::Printer(std::string path, uint64_t baudrate) {
+int Printer::init(std::string path, uint64_t baudrate) {
 	//Initialize the serial_settings
 	fd = open(path.c_str(), O_RDWR | O_NDELAY);
 
@@ -105,7 +105,10 @@ Printer::Printer(std::string path, uint64_t baudrate) {
 	//wait a bit for the printer to say is's message
 	sleep(1);
 	read_garbage();
+	
+	initialized = true;
 
+	return 0;
 }
 
 ssize_t Printer::send(std::string gcode) {
@@ -160,4 +163,9 @@ bool Printer::is_response_ok(char* buffer) {
 	if (buffer[1] != 'k') return false;
 
 	return true;
+}
+
+void Printer::disconnect() {
+	close(fd);
+	initialized = false;
 }
