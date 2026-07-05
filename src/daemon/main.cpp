@@ -56,6 +56,8 @@ EXAMPLES:\n\
 SUPPORTED COMMANDS:\n\
   help - display this help message\n\
   echo - print out text\n\
+  init - initilize the printer\n\
+  terminal - connect to the printer with a terminal\n\
   exit - disconnect from the daemon\n\
   shutdown - shutdown the daemon\n\
 \n\
@@ -78,31 +80,34 @@ void log(std::string text) {
 	log_file << time_string << ": " << text << std::endl;
 }
 
-int main_loop(Printer printer) {
-	ssize_t error_num;
-	std::string send_buffer;
+int terminal_loop(Printer printer, int client) {
 	char* buffer = ( char* ) malloc(BUFFER_SIZE);
+	ssize_t read_bytes;
 
 	while (true) {
-		std::cout << "SEND: ";
-		std::cin >> send_buffer;
-		if (send_buffer == "exit") { return 0; free(buffer); }
-		send_buffer.append(1, '\n');
+		write(client, "SEND: ", 6);
+		read_bytes = read(client, buffer, BUFFER_SIZE);
+	
+		//add the null terminator
+		buffer[read_bytes] = '\0';
 
-		printer.send(send_buffer);
+		if (strcmp(buffer, "exit\n") == 0) { free(buffer); return 0; }
+
+		printer.send((std::string{buffer}));
 
 		do {
-			error_num = printer.read_line(buffer);
+			read_bytes = printer.read_line(buffer);
 
-			if (error_num < 0) {
-				std::cout << "ERROR reading printer's response: "
-					<< error_num << std::endl;
+			if (read_bytes < 0) {
+				 write(client, 
+"ERROR reading printer's response.\n", 35);
 				free(buffer);
-				return error_num;
+				return -1;
 			}
 
-			std::cout << "RECV: " << buffer;
-		} while (!printer.is_response_ok(buffer) && error_num == 0);
+			write(client, "RECV: ", 6);
+			write(client, buffer, strlen(buffer));
+		} while (!printer.is_response_ok(buffer) && read_bytes == 0);
 	}
 
 	free(buffer);
@@ -167,6 +172,19 @@ int client_loop() {
 					client_command.arguments["text"].c_str(),
 					client_command.arguments["text"].length());
 				write(client, "\n", 1);
+			}
+
+			else if (client_command.command == "terminal") {
+				write(client, 
+"You have entered terminal mode, type \"exit\" to go back.\n", 56);
+
+				log("Client entered terminal mode");
+
+				terminal_loop(printer, client);
+				write(client, "Exited terminal mode\n", 21);
+
+				log("Client left terminal mode");
+
 			}
 
 			else if (client_command.command == "init") {
