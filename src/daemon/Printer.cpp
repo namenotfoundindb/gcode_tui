@@ -24,7 +24,10 @@
 #include <time.h>
 #include <errno.h>
 
-#include <iostream>
+#include <fstream>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include "../commons.h"
 #include "Printer.h"
@@ -111,7 +114,7 @@ int Printer::init(std::string path, uint64_t baudrate) {
 	return 0;
 }
 
-ssize_t Printer::send(std::string gcode) {
+int Printer::send(std::string gcode) {
 	return write(fd, gcode.c_str(), gcode.length());
 }
 
@@ -133,7 +136,7 @@ ssize_t Printer::read_char(char* ch) {
 	return 0;
 }
 
-ssize_t Printer::read_line(char* buffer) {
+int Printer::read_line(char* buffer) {
 	char ch;
 	int strlen = 0;
 
@@ -149,7 +152,7 @@ ssize_t Printer::read_line(char* buffer) {
 		buffer[strlen] = ch;
 		strlen++;
 
-		if (ch == '\n') { buffer[strlen] = '\0'; return 0; }
+		if (ch == '\n') { buffer[strlen] = '\0'; return strlen; }
 	}
 
 }
@@ -168,4 +171,9 @@ bool Printer::is_response_ok(char* buffer) {
 void Printer::disconnect() {
 	close(fd);
 	initialized = false;
+}
+
+int Printer::send_file(std::ofstream gcode_file) {
+	if (!initialized) return -1;
+	return 0;
 }

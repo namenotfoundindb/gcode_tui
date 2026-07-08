@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <string>
+#include <format>
 #include <fstream>
 #include <chrono>
 
@@ -29,10 +30,16 @@
 #include <sys/socket.h>
 #include <termios.h>
 
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
 #include "../commons.h"
 #include "daemon_functions.h"
 #include "StringCommand.h"
 #include "Printer.h"
+#include "PrinterCommands.h"
+#include "PrinterState.h"
 
 //#define DONT_CHDIR
 
@@ -40,6 +47,11 @@ const short int formatted_time_length = 32;
 
 std::string log_file_path = "/var/log/gcode_tui_daemon.log";
 std::ofstream log_file;
+
+//temporary variables to test the send_file function
+//these will be moved (probably to the Printer class)
+std::mutex mtx;
+std::condition_variable cv;
 
 std::string help_text = "\
 gcode_tui: Program that drips gcode in the background to a machine\n\
@@ -58,6 +70,7 @@ SUPPORTED COMMANDS:\n\
   echo - print out text\n\
   init - initilize the printer\n\
   terminal - connect to the printer with a terminal\n\
+  send - sends a file to the printer\n\
   exit - disconnect from the daemon\n\
   shutdown - shutdown the daemon\n\
 \n\
@@ -65,6 +78,9 @@ SUPPORTED COMMANDS:\n\
 
 int client_socket;
 int client;
+
+Printer* global_printer = NULL;
+std::string global_file_to_send = "";
 
 void log(std::string text) {
 	time_t timestamp;
@@ -78,6 +94,114 @@ void log(std::string text) {
 	time_string[strlen(time_string) - 1] = '\0';
 	
 	log_file << time_string << ": " << text << std::endl;
+}
+
+//TODO: continue writing the send_file function to a working state
+
+//A temporary function to test multitheading and sending files
+//In the future i plan to integrate this functions (and the 
+//variables it uses) in the Printer class
+int send_file() {
+	std::unique_lock<std::mutex> lock(mtx);
+	lock.lock();
+
+	log("started the gcode_thread");
+
+	if (!global_printer->initialized) return -1;
+	lock.unlock();
+
+	std::string line;
+	int bytes_read = 0;
+	char* buffer = ( char* ) malloc(BUFFER_SIZE);
+	char* no_newline_buffer = ( char* ) malloc(BUFFER_SIZE);
+
+	std::ifstream file;
+	file.open(global_file_to_send);
+
+	//put a lock on mtx so that this thread does not
+	//acces/modify variables at the as the main thread
+
+	while (true) {
+		lock.lock();
+		cv.wait(lock, [&] {return global_printer != NULL;});
+
+		//wait until there are commands in the queue or
+		//we are printing
+		cv.wait(lock, [&] {return !global_printer->command_queue.empty()
+				|| global_printer->state == PrinterState::Printing;
+				});
+		
+		if (!global_printer->command_queue.empty()) {
+			PrinterCommands cmd = global_printer->command_queue.front();
+			global_printer->command_queue.pop();
+			lock.unlock();
+
+			if (cmd == PrinterCommands::Stop)
+				global_printer->state = PrinterState::Stoped;
+			else if (cmd == PrinterCommands::Start)
+				global_printer->state = PrinterState::Printing;
+			else if (cmd == PrinterCommands::Stop)
+				global_printer->state = PrinterState::Stoped;
+			else if (cmd == PrinterCommands::Pause)
+				global_printer->state = PrinterState::Paused;
+		}
+
+		if (global_printer->state == PrinterState::Printing) {
+			lock.lock();
+			if (!getline(file, line)) {
+				global_printer->state = PrinterState::Finished;
+				log("Finished sending file");
+			}
+
+			 if (global_printer->send(line) < 0) {
+				 global_printer->state = PrinterState::Errored;
+				 log("ERROR sending line to printer!");
+			 }
+			 else log(std::format("SENT: {}", line));
+
+			do {
+				bytes_read = global_printer->read_line(buffer);
+				if (bytes_read < 0) 
+					global_printer->state = PrinterState::Errored;
+				else {
+					strcpy(no_newline_buffer, buffer);
+					
+					//delete the newline
+					//-2 to reach the newline
+					//h e l l o \n \0
+					//                ^ here is strlen
+					//           ^ here is strlen - 2
+					no_newline_buffer[bytes_read - 2] = '\0';
+					log(std::format("RECV: {}", buffer));
+				}
+
+			} while (!global_printer->is_response_ok(buffer) &&
+					global_printer->state != PrinterState::Errored);
+			lock.unlock();
+		}
+
+	}
+	file.close();
+	
+	//make sure this_thread did not lock it forever
+	lock.unlock();
+	
+	free(buffer);
+	free(no_newline_buffer);
+
+	return 0;
+}
+
+void send_command(PrinterCommands cmd) {
+	//a separate scope so the lock_guard unlocks
+	//when going out of scope
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		global_printer->command_queue.push(cmd);
+	}
+
+	//notify the gcode sender thread that a command has been pushed
+	cv.notify_one();
 }
 
 int terminal_loop(Printer printer, int client) {
@@ -101,9 +225,7 @@ int terminal_loop(Printer printer, int client) {
 			if (read_bytes < 0) {
 				 write(client, 
 "ERROR reading printer's response.\n", 35);
-				free(buffer);
-				return -1;
-			}
+				free(buffer); return -1; }
 
 			write(client, "RECV: ", 6);
 			write(client, buffer, strlen(buffer));
@@ -196,6 +318,18 @@ int client_loop() {
 				write(client, "Initilized printer\n", 19);
 			}
 
+			else if (client_command.command == "send") {
+				{
+					std::lock_guard<std::mutex> lock(mtx);
+					global_printer = &printer;
+					global_file_to_send =
+						client_command.arguments["file"];
+				}
+				cv.notify_one();
+
+				log("Started sending file");
+			}
+
 			else write(client, "Unknown command! Try \"help\"\n",
 					28);
 
@@ -228,8 +362,14 @@ int main() {
 		log("ERROR initializing client socket!");
 		return client_socket;
 	}
+
+	std::thread gcode_thread(send_file);
 	
 	client_loop();
+
+	send_command(PrinterCommands::Stop);
+
+	if (gcode_thread.joinable()) gcode_thread.join();
 
 	log("Exiting...\nThank you for using gcode_tui!");
 

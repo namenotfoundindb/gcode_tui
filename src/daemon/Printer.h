@@ -22,12 +22,23 @@
 #include <termios.h>
 #include <time.h>
 
+#include <queue>
+#include <condition_variable>
+
+#include "PrinterCommands.h"
+#include "PrinterState.h"
+
 class Printer {
 	public:
 		bool initialized = false;
 		std::string path;
 		int fd;
 		struct termios serial_settings;
+
+		//at the moment public for testing
+		std::queue<PrinterCommands> command_queue;	
+		PrinterState state = PrinterState::Idle;
+
 		//how much time to wait for data if there is none from the 
 		//printer
 		//at the moment these are the default values
@@ -40,9 +51,10 @@ class Printer {
 
 		int read_garbage();
 		int init(std::string path, uint64_t badurate);
-		ssize_t send(std::string gcode);
+		int send(std::string gcode);
+		int send_file(std::ofstream gcode_file);
 		ssize_t read_char(char* ch);
-		ssize_t read_line(char* buffer);
+		int read_line(char* buffer);
 		bool is_response_ok(char* buffer);
 		void disconnect();
 };

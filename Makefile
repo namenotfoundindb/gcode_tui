@@ -6,7 +6,7 @@ gcode_tui_daemon:
 		src/daemon/StringCommand.cpp\
 		src/daemon/Printer.cpp\
 		src/daemon/string_functions.cpp\
-		-o gcode_tui_daemon -Wall
+		-o gcode_tui_daemon -Wall -std=c++20
 
 debug:
 	g++ src/daemon/main.cpp src/commons.cpp\
