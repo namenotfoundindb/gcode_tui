@@ -37,9 +37,9 @@
 #include "../commons.h"
 #include "daemon_functions.h"
 #include "StringCommand.h"
-#include "Printer.h"
-#include "PrinterCommands.h"
-#include "PrinterState.h"
+#include "Printer/Printer.h"
+#include "Printer/Commands.h"
+#include "Printer/State.h"
 
 //#define DONT_CHDIR
 

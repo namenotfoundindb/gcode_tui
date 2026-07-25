@@ -25,8 +25,8 @@
 #include <queue>
 #include <condition_variable>
 
-#include "PrinterCommands.h"
-#include "PrinterState.h"
+#include "Commands.h"
+#include "State.h"
 
 class Printer {
 	public:
