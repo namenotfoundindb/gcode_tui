@@ -15,6 +15,13 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+/*
+ * BUGS:
+ * * You cannot stop the gcode_thread if global_printer = NULL because it will
+ *   wait until global_printer != NULL. Will have to work on a better way of
+ *   stoping the gcode_thread.
+ */
+
 #include <iostream>
 #include <string>
 #include <format>
@@ -48,9 +55,9 @@ const short int formatted_time_length = 32;
 std::string log_file_path = "/var/log/gcode_tui_daemon.log";
 std::ofstream log_file;
 
-//temporary variables to test the send_file function
-//these will be moved (probably to the Printer class)
+//mutex between the gcode_thread and the main thread
 std::mutex mtx;
+//condition_variable between the gcode_thread and the main thread
 std::condition_variable cv;
 
 std::string help_text = "\
@@ -79,8 +86,13 @@ SUPPORTED COMMANDS:\n\
 int client_socket;
 int client;
 
+//pointer to the active printer
+//if set to NULL the gcode_thread waits until it is no longer NULL
 Printer* global_printer = NULL;
 std::string global_file_to_send = "";
+
+bool end_gcode_thread = false;
+uint lines_sent;
 
 void log(std::string text) {
 	time_t timestamp;
@@ -344,6 +356,154 @@ int client_loop() {
 	return 0;
 }
 
+int gcode_sender() {
+	std::unique_lock<std::mutex> lock(mtx);
+
+	char* buffer = (char*) malloc(BUFFER_SIZE);
+	std::ifstream gcode_file;
+
+	//if this line is empty ("") that means that the last line of gcode
+	//was sent succesfuly, if it's not empty, try sending that line again
+	std::string line = "h";
+
+	//NOTE: In this outer loop, lock stays locked most of the time, while
+	//in the inter loop it stays unlocked most of the time
+	while (true) {
+		if (end_gcode_thread) {
+			lock.unlock();
+			//break to the end of the function
+			break;
+		}
+
+		//wait for the printer to be ready
+		//when global_printer != NULL it means a file needs to be sent
+		cv.wait(lock, [&] { return global_printer != NULL; });
+
+		gcode_file.open(global_file_to_send);
+		if (!gcode_file.is_open()) {
+			//these error messages will be swaped in the future for
+			//an error reporting system
+			log("Error opening gcode file!");
+			break;
+		}
+
+		//NOTE: In this inside loop, the lock remains unlocked most of
+		//the time and locked when needed AND at the end of the loop
+		//so we can use cv.wait
+		while (true) {
+			//i don't know why this is here, probably the lock
+			//remains unlocked sometimes and needs to be locked
+			//here?
+			if (!lock.owns_lock()) lock.lock();
+
+			//continue only if there is a command to execute OR
+			//the printer is printing
+			cv.wait(lock, [&] {return
+				!global_printer->command_queue.empty()
+				|| global_printer->state == Printing; });
+
+			lock.unlock();
+
+			//execute any commands that migth exist
+			if (!global_printer->command_queue.empty()) {
+				//using temporary variables to keep lock
+				//unlocked
+
+				lock.lock();
+				PrinterCommands cmd =
+					global_printer->command_queue.front();
+				global_printer->command_queue.pop();
+				lock.unlock();
+
+				PrinterState state;
+				if (cmd == PrinterCommands::Stop)
+					state = PrinterState::Stoped;
+
+				else if (cmd == PrinterCommands::Start
+					|| cmd == PrinterCommands::Continue)
+					state = PrinterState::Printing;
+
+				else if (cmd == PrinterCommands::Pause)
+					state = PrinterState::Paused;
+
+				lock.lock();
+				global_printer->state = state;
+				lock.unlock();
+			}
+
+			if (global_printer->state == Printing) {
+				//if line is empty, the last line was sent
+				//succesfuly so we can read another
+
+				if (line.length() == 0) {
+					if (!std::getline(gcode_file, line)) {
+						lock.lock();
+						global_printer->state = Finished;
+
+						//set global printer to NULL so
+						//the gcode_thread does not
+						//start sending the same file
+						//again
+						global_printer = NULL;
+
+						gcode_file.close();
+
+						//don't unlock the lock as the
+						//outer loop expects in locked
+						break;
+					}
+				}
+
+				//if this is the last line, '\n' does
+				//not end the line, so we need to put it
+				//ourselfs
+				line.append("\n");
+
+				if (global_printer->send(line) < 0) {
+					lock.lock();
+					global_printer->state = Errored;
+					lock.unlock();
+
+					log("Printer errored while sending line!");
+
+					//skip the rest because it errored
+					//the lock remains unlocked
+					continue;
+				}
+				else {
+					lock.lock();
+					lines_sent++;
+					lock.unlock();
+
+					//empty line so signal the line was
+					//sent succesfuly
+					line = "";
+				}
+
+				//search for the "ok" response
+				do {
+					if (global_printer->read_line(buffer) < 0) {
+						lock.lock();
+						global_printer->state = Errored;
+						lock.unlock();
+
+						log("Printer errored while reading line!");
+
+						//break into the inner loop so
+						//it waits until the error has
+						//been cleared
+						break;
+					}
+				} while(!global_printer->is_response_ok(buffer));
+			}
+
+		}
+	}
+
+	free(buffer);
+	return 0;
+}
+
 int main() {
 	ssize_t error_num = 0;
 	error_num = daemonize();
@@ -363,13 +523,16 @@ int main() {
 		return client_socket;
 	}
 
-	std::thread gcode_thread(send_file);
-	
+	end_gcode_thread = true;
+	std::thread gcode_thread(gcode_sender);
+	log("Started gcode thread");
+
 	client_loop();
 
-	send_command(PrinterCommands::Stop);
+	log("Ending gcode thread...");
 
 	if (gcode_thread.joinable()) gcode_thread.join();
+	log("Ended gcode thread");
 
 	log("Exiting...\nThank you for using gcode_tui!");
 

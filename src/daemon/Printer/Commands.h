@@ -19,5 +19,6 @@
 enum PrinterCommands {
 	Start,
 	Stop,
-	Pause
+	Pause,
+	Continue
 };
