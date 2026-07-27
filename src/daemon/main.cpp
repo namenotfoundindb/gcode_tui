@@ -337,7 +337,9 @@ int client_loop() {
 					global_file_to_send =
 						client_command.arguments["file"];
 				}
-				cv.notify_one();
+				//no need to call cv.notify_one because send
+				//command already does that
+				send_command(Start);
 
 				log("Started sending file");
 			}
