@@ -241,7 +241,7 @@ int terminal_loop(Printer printer, int client) {
 
 			write(client, "RECV: ", 6);
 			write(client, buffer, strlen(buffer));
-		} while (!printer.is_response_ok(buffer) && read_bytes == 0);
+		} while (!printer.is_response_ok(buffer));
 	}
 
 	free(buffer);
