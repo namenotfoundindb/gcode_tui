@@ -89,7 +89,9 @@ int client;
 //pointer to the active printer
 //if set to NULL the gcode_thread waits until it is no longer NULL
 Printer* global_printer = NULL;
+
 std::string global_file_to_send = "";
+std::ifstream gcode_file;
 
 bool end_gcode_thread = false;
 uint lines_sent;
@@ -331,12 +333,19 @@ int client_loop() {
 			}
 
 			else if (client_command.command == "send") {
-				{
-					std::lock_guard<std::mutex> lock(mtx);
-					global_printer = &printer;
-					global_file_to_send =
-						client_command.arguments["file"];
+				std::unique_lock<std::mutex> lock(mtx);
+				global_printer = &printer;
+				global_file_to_send =
+					client_command.arguments["file"];
+				lock.unlock();
+
+				gcode_file.open(global_file_to_send);
+
+				if (!gcode_file.is_open()) {
+					write(client, "Could not open file!\n", 22);
+					continue;
 				}
+
 				//no need to call cv.notify_one because send
 				//command already does that
 				send_command(Start);
@@ -362,7 +371,6 @@ int gcode_sender() {
 	std::unique_lock<std::mutex> lock(mtx);
 
 	char* buffer = (char*) malloc(BUFFER_SIZE);
-	std::ifstream gcode_file;
 
 	//if this line is empty ("") that means that the last line of gcode
 	//was sent succesfuly, if it's not empty, try sending that line again
@@ -382,14 +390,6 @@ int gcode_sender() {
 		if (end_gcode_thread) {
 			lock.unlock();
 			//break to the end of the function
-			break;
-		}
-
-		gcode_file.open(global_file_to_send);
-		if (!gcode_file.is_open()) {
-			//these error messages will be swaped in the future for
-			//an error reporting system
-			log("Error opening gcode file!");
 			break;
 		}
 
