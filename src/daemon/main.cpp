@@ -369,15 +369,19 @@ int gcode_sender() {
 	//NOTE: In this outer loop, lock stays locked most of the time, while
 	//in the inter loop it stays unlocked most of the time
 	while (true) {
+
+		//wait for the printer to be ready
+		//when global_printer != NULL it means a file needs to be sent
+		cv.wait(lock, [&] { return global_printer != NULL
+				|| end_gcode_thread == true; });
+		
+		//to end the thread, global_printer == NULL (so it's in the 
+		//outside loop) AND end_gcode_thread == true;
 		if (end_gcode_thread) {
 			lock.unlock();
 			//break to the end of the function
 			break;
 		}
-
-		//wait for the printer to be ready
-		//when global_printer != NULL it means a file needs to be sent
-		cv.wait(lock, [&] { return global_printer != NULL; });
 
 		gcode_file.open(global_file_to_send);
 		if (!gcode_file.is_open()) {
@@ -522,14 +526,24 @@ int main() {
 		log("ERROR initializing client socket!");
 		return client_socket;
 	}
-
-	end_gcode_thread = true;
+	
 	std::thread gcode_thread(gcode_sender);
-	log("Started gcode thread");
+	log("Started the gcode thread");
 
 	client_loop();
 
-	log("Ending gcode thread...");
+	//at the moment the gcode_thread ends imidieatly when the client_loop
+	//ends
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+
+		//set the conditions for which the gcode_thread ends
+		//NOTE: in the future, this assumes the printer is IDLE so that
+		//gcode_sender does not read from a NULL pointer
+		end_gcode_thread = true;
+		
+		cv.notify_one();
+	}
 
 	if (gcode_thread.joinable()) gcode_thread.join();
 	log("Ended gcode thread");
