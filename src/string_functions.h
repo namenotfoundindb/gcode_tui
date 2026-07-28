@@ -17,5 +17,14 @@
 
 #pragma once
 #include <string>
+#include <vector>
 
 std::string extract_first_word(std::string* str);
+
+//Separate key-value pairs by spaces and newlines
+std::vector<std::string> separate_key_value_pairs(std::string);
+
+//takes an key-argument pair as a string and splits it into an std::pair by a
+//: (colon)
+//NOTE: It does not expect the argument to be surounded in quoates
+std::pair<std::string, std::string> get_key_argument(std::string pair);
