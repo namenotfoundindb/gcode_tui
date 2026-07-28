@@ -21,7 +21,8 @@
 
 std::string extract_first_word(std::string* str);
 
-//Separate key-value pairs by spaces and newlines
+//Separate key=value pairs by spaces (in the future it will also separate by
+//newlines)
 std::vector<std::string> separate_key_value_pairs(std::string);
 
 //takes an key-argument pair as a string and splits it into an std::pair by a
