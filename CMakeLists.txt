@@ -13,7 +13,7 @@ add_executable(gcode_tui_daemon
 	src/daemon/main.cpp
 	src/commons.cpp
 	src/daemon/daemon_functions.cpp
-	src/daemon/StringCommand.cpp
 	src/daemon/Printer/Printer.cpp
-	src/daemon/string_functions.cpp
+	src/StringCommand.cpp
+	src/string_functions.cpp
 )

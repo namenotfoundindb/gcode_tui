@@ -43,7 +43,7 @@
 
 #include "../commons.h"
 #include "daemon_functions.h"
-#include "StringCommand.h"
+#include "../StringCommand.h"
 #include "Printer/Printer.h"
 #include "Printer/Commands.h"
 #include "Printer/State.h"
