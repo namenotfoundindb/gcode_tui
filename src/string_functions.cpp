@@ -73,10 +73,12 @@ std::vector<std::string> separate_key_value_pairs(std::string str) {
 			//delete this part of the string, and
 			//leave the rest for the next iteration
 
-			//check if the last part contains a space
-			if (str[str.length() - 1] == ' ') 
+			//check if the last part of str contains a space
+			if (str[last_quote_pos + 1] == ' ')
 				//+2 to delete the last quoate and space
 				str.erase(0, last_quote_pos + 2);
+
+			//else +1 to delete only the quote
 			else str.erase(0, last_quote_pos + 1);
 		}
 
