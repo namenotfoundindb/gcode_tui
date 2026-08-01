@@ -20,32 +20,33 @@
 #include <utility>
 
 //move the first word from one string to another
-//(and also delete the space in the source string)
+//(and also delete the space/newline in the source string)
 std::string extract_first_word(std::string* str) {
 	//find the first space
-	size_t pos = str->find(' ');
-	std::string sub;
+	size_t newline_pos = str->find('\n');
+	size_t space_pos = str->find(' ');
+	std::string return_str;
 
-	//if there is a space in the string
-	if (pos != std::string::npos) {
-		//make a substring containing the first word
-		sub = str->substr(0, pos);
+	//separate only by the first separator
+	size_t first_separator;
+	if (space_pos < newline_pos) first_separator = space_pos;
+	else first_separator = newline_pos;
 
-		//assign the rest of the string to the original string
-		*str = str->substr(pos + 1);
-	}
-
-	//else if the string contains one word (no spaces);
-	else {
-		//return the original string
-		sub = *str;
+	//if there is no separator
+	if (first_separator == std::string::npos) {
+		//return the whole string
+		return_str = *str;
 		*str = "";
 	}
-	return sub;
+	else {
+		return_str = str->substr(0, first_separator);
+		*str = str->substr(first_separator + 1);
+	}
+
+	return return_str;
 }
 
-//Separate key=value pairs by spaces (in the future it will also separate by
-//newlines)
+//Separate key=value pairs
 std::vector<std::string> separate_key_value_pairs(std::string str) {
 	std::vector<std::string> pairs;
 	int delimiter_pos = 0;
@@ -74,7 +75,9 @@ std::vector<std::string> separate_key_value_pairs(std::string str) {
 			//leave the rest for the next iteration
 
 			//check if the last part of str contains a space
-			if (str[last_quote_pos + 1] == ' ')
+			char char_after_quoate = str[last_quote_pos + 1];
+			if (char_after_quoate == ' '
+					|| char_after_quoate == '\n')
 				//+2 to delete the last quoate and space
 				str.erase(0, last_quote_pos + 2);
 
