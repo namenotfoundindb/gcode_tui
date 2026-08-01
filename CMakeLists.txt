@@ -16,4 +16,5 @@ add_executable(gcode_tui_daemon
 	src/daemon/Printer/Printer.cpp
 	src/StringCommand.cpp
 	src/string_functions.cpp
+	src/Cson.cpp
 )
