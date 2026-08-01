@@ -90,7 +90,6 @@ int client;
 //if set to NULL the gcode_thread waits until it is no longer NULL
 Printer* global_printer = NULL;
 
-std::string global_file_to_send = "";
 std::ifstream gcode_file;
 
 bool end_gcode_thread = false;
@@ -130,7 +129,7 @@ int send_file() {
 	char* no_newline_buffer = ( char* ) malloc(BUFFER_SIZE);
 
 	std::ifstream file;
-	file.open(global_file_to_send);
+	file.open(global_printer->file_to_send);
 
 	//put a lock on mtx so that this thread does not
 	//acces/modify variables at the as the main thread
@@ -335,11 +334,11 @@ int client_loop() {
 			else if (client_command.command == "send") {
 				std::unique_lock<std::mutex> lock(mtx);
 				global_printer = &printer;
-				global_file_to_send =
+				global_printer->file_to_send =
 					client_command.arguments["file"];
 				lock.unlock();
 
-				gcode_file.open(global_file_to_send);
+				gcode_file.open(printer.file_to_send);
 
 				if (!gcode_file.is_open()) {
 					write(client, "Could not open file!\n", 22);

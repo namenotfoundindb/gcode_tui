@@ -32,6 +32,7 @@ class Printer {
 	public:
 		bool initialized = false;
 		std::string path;
+		std::string file_to_send;
 		int fd;
 		struct termios serial_settings;
 
