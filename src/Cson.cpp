@@ -28,6 +28,8 @@
 //parse a cson string
 //returns the number of values
 int Cson::parse(std::string str) {
+	data = str;
+
 	std::vector<std::string> str_pairs = separate_key_value_pairs(str);
 	std::pair<std::string, std::string> pair;
 

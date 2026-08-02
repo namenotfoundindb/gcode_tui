@@ -31,6 +31,7 @@
 
 #include "../../commons.h"
 #include "Printer.h"
+#include "../../Cson.h"
 
 int Printer::read_garbage() {
 	//Read all the garbage that the printer says, until an 
@@ -176,4 +177,36 @@ void Printer::disconnect() {
 int Printer::send_file(std::ofstream gcode_file) {
 	if (!initialized) return -1;
 	return 0;
+}
+
+//get a string containing cson formatted information about the printer status
+Cson Printer::get_cson_status() {
+	//im sure this is not the best way to implement this functionality, but
+	//im not going to spend 5 months finding the best way
+	std::string str_info;
+
+	str_info.append("initialized:");
+	str_info.append(std::to_string(initialized) + "\n");
+
+	if (initialized) {
+		//give more info if the printer is initilized
+		str_info.append(
+			"path:" + path + "\n" +
+			"state:" + std::to_string(state) + "\n" +
+			"fd:" + std::to_string(static_cast<int>(fd)) +
+			"\n");
+	}
+
+	if (state != Idle && state != Errored) {
+		//if the printer is actualy printing
+		str_info.append(
+			"file_to_send:" + file_to_send + "\n" +
+			"percentage_sent:" + std::to_string(percentage_sent) +
+			"\n");
+	}
+
+	Cson cson_info;
+	cson_info.parse(str_info);
+
+	return cson_info;
 }

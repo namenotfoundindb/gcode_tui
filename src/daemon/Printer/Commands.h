@@ -17,7 +17,7 @@
 
 #pragma once
 enum PrinterCommands {
-	Start,
+	Start = 0,
 	Stop,
 	Pause,
 	Continue

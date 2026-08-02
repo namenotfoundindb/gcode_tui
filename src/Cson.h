@@ -15,6 +15,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include <string>
 #include <map>
 
@@ -23,6 +25,7 @@ class Cson {
 		//value count
 		int argc = 0;
 		std::map<std::string, std::string> values;
+		std::string data;
 
 		int parse(std::string str);
 

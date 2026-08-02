@@ -27,12 +27,14 @@
 
 #include "Commands.h"
 #include "State.h"
+#include "../../Cson.h"
 
 class Printer {
 	public:
 		bool initialized = false;
 		std::string path;
 		std::string file_to_send;
+		short int percentage_sent;
 		int fd;
 		struct termios serial_settings;
 
@@ -58,4 +60,5 @@ class Printer {
 		int read_line(char* buffer);
 		bool is_response_ok(char* buffer);
 		void disconnect();
+		Cson get_cson_status();
 };

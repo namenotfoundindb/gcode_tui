@@ -17,7 +17,7 @@
 
 #pragma once
 enum PrinterState {
-	Errored,
+	Errored = 0,
 	Printing,
 	Idle,
 	Stoped,

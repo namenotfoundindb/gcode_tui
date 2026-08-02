@@ -78,6 +78,7 @@ SUPPORTED COMMANDS:\n\
   init - initilize the printer\n\
   terminal - connect to the printer with a terminal\n\
   send - sends a file to the printer\n\
+  status - get printer status (experimental)\n\
   exit - disconnect from the daemon\n\
   shutdown - shutdown the daemon\n\
 \n\
@@ -350,6 +351,13 @@ int client_loop() {
 				send_command(Start);
 
 				log("Started sending file");
+			}
+
+			else if (client_command.command == "status") {
+				Cson cson_info =
+					printer.get_cson_status();
+				write(client, cson_info.data.c_str(),
+						cson_info.data.length());
 			}
 
 			else write(client, "Unknown command! Try \"help\"\n",
