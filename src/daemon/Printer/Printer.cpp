@@ -197,7 +197,7 @@ Cson Printer::get_cson_status() {
 			"\n");
 	}
 
-	if (state != Idle && state != Errored) {
+	if (state == Printing || state == Errored || state == Paused) {
 		//if the printer is actualy printing
 		str_info.append(
 			"file_to_send:" + file_to_send + "\n" +
