@@ -53,6 +53,8 @@ int Printer::read_garbage() {
 }
 
 int Printer::init(std::string path, uint64_t baudrate) {
+	Printer::path = path;
+
 	//Initialize the serial_settings
 	fd = open(path.c_str(), O_RDWR | O_NDELAY);
 
