@@ -94,7 +94,6 @@ Printer* global_printer = NULL;
 std::ifstream gcode_file;
 
 bool end_gcode_thread = false;
-uint lines_sent;
 
 void log(std::string text) {
 	time_t timestamp;
@@ -485,7 +484,7 @@ int gcode_sender() {
 				}
 				else {
 					lock.lock();
-					lines_sent++;
+					global_printer->lines_proccesed++;
 					lock.unlock();
 
 					//empty line so signal the line was

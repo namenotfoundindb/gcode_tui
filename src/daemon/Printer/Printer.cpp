@@ -203,6 +203,8 @@ Cson Printer::get_cson_status() {
 		//if the printer is actualy printing
 		str_info.append(
 			"file_to_send:" + file_to_send + "\n" +
+			"lines_proccesed:" + std::to_string(lines_proccesed) +
+			"\n" +
 			"percentage_sent:" + std::to_string(percentage_sent) +
 			"\n");
 	}

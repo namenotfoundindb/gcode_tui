@@ -34,7 +34,9 @@ class Printer {
 		bool initialized = false;
 		std::string path;
 		std::string file_to_send;
+
 		short int percentage_sent;
+		unsigned int lines_proccesed;
 		int fd;
 		struct termios serial_settings;
 
