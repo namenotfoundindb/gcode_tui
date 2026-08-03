@@ -18,6 +18,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <fstream>
 
 std::string extract_first_word(std::string* str);
 
@@ -29,3 +30,6 @@ std::vector<std::string> separate_key_value_pairs(std::string);
 //: (colon)
 //NOTE: It does not expect the argument to be surounded in quoates
 std::pair<std::string, std::string> get_key_argument(std::string pair);
+
+//Returns -1 on error
+int count_file_lines(std::ifstream file);

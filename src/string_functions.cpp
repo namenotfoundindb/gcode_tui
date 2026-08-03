@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <fstream>
 
 //move the first word from one string to another
 //(and also delete the space/newline in the source string)
@@ -106,4 +107,17 @@ std::pair<std::string, std::string> get_key_argument(std::string pair) {
 	std::string argument = pair.substr(delimiter_pos + 1, pair.length());
 
 	return {key, argument};
+}
+
+//Returns -1 on error
+int count_file_lines(std::ifstream file) {
+	if (!file.is_open()) return -1;
+
+	int line_count;
+	std::string temp;
+	while (std::getline(file, temp)) {
+		line_count++;
+	}
+
+	return line_count;
 }
