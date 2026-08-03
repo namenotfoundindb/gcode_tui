@@ -32,4 +32,4 @@ std::vector<std::string> separate_key_value_pairs(std::string);
 std::pair<std::string, std::string> get_key_argument(std::string pair);
 
 //Returns -1 on error
-int count_file_lines(std::ifstream* file);
+int count_file_lines(std::ifstream& file);

@@ -347,8 +347,9 @@ int client_loop() {
 					continue;
 				}
 
+				lock.lock();
 				printer.total_gcode_lines = count_file_lines(
-						&gcode_file);
+						gcode_file);
 
 				//no need to call cv.notify_one because send
 				//command already does that
