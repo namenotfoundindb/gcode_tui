@@ -335,7 +335,6 @@ int client_loop() {
 
 			else if (client_command.command == "send") {
 				std::unique_lock<std::mutex> lock(mtx);
-				global_printer = &printer;
 				global_printer->file_to_send =
 					client_command.arguments["file"];
 				lock.unlock();
@@ -347,6 +346,10 @@ int client_loop() {
 					continue;
 				}
 
+				//set global_printer at the end, so that the
+				//gcode_thread does not start sending gcode to
+				//early
+				global_printer = &printer;
 				lock.lock();
 				printer.total_gcode_lines = count_file_lines(
 						gcode_file);
