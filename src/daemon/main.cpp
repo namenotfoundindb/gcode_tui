@@ -42,8 +42,10 @@
 #include <condition_variable>
 
 #include "../commons.h"
+#include "../string_functions.h"
 #include "daemon_functions.h"
 #include "../StringCommand.h"
+
 #include "Printer/Printer.h"
 #include "Printer/Commands.h"
 #include "Printer/State.h"
@@ -344,6 +346,9 @@ int client_loop() {
 					write(client, "Could not open file!\n", 22);
 					continue;
 				}
+
+				printer.total_gcode_lines = count_file_lines(
+						&gcode_file);
 
 				//no need to call cv.notify_one because send
 				//command already does that

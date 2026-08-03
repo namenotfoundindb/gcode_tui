@@ -110,12 +110,12 @@ std::pair<std::string, std::string> get_key_argument(std::string pair) {
 }
 
 //Returns -1 on error
-int count_file_lines(std::ifstream file) {
-	if (!file.is_open()) return -1;
+int count_file_lines(std::ifstream* file) {
+	if (!file->is_open()) return -1;
 
 	int line_count;
 	std::string temp;
-	while (std::getline(file, temp)) {
+	while (std::getline(*file, temp)) {
 		line_count++;
 	}
 

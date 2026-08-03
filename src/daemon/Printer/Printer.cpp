@@ -206,7 +206,9 @@ Cson Printer::get_cson_status() {
 			"lines_proccesed:" + std::to_string(lines_proccesed) +
 			"\n" +
 			"percentage_sent:" + std::to_string(percentage_sent) +
-			"\n");
+			"\n" +
+			"total_gcode_lines:" + std::to_string(total_gcode_lines)
+			+ "\n");
 	}
 
 	Cson cson_info;

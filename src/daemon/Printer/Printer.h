@@ -37,6 +37,8 @@ class Printer {
 
 		short int percentage_sent;
 		unsigned int lines_proccesed;
+		int total_gcode_lines;
+
 		int fd;
 		struct termios serial_settings;
 
