@@ -73,9 +73,12 @@ int init_socket() {
 	addr.sun_family = AF_UNIX;
 	strcpy(addr.sun_path, daemon_socket_addres.c_str());
 
-	//unbind the previous socket (if there was any) unlink(daemon_socket_addres.c_str());
+	//unbind the previous socket (if there was any)
+	unlink(daemon_socket_addres.c_str());
+
 	//Bind the socket
-	bind(client_socket, (sockaddr*)&addr, sizeof(addr));
+	if (bind(client_socket, (sockaddr*)&addr, sizeof(addr)) < 0)
+		return -1;
 
 	listen(client_socket, 5);
 

@@ -259,10 +259,11 @@ int client_loop() {
 	
 
 	while (true) {
-		client = accept(client_socket, nullptr, nullptr);
+		client = accept(client_socket, NULL, NULL);
 
 		if (client < 0) {
 			log("ERROR accepting client!");
+			log("errno = " + std::to_string(errno));
 			return -1;
 		}
 
