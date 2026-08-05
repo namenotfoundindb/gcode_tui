@@ -31,20 +31,9 @@
 
 class Printer {
 	public:
-		bool initialized = false;
-		std::string path;
-		std::string file_to_send;
+		std::queue<PrinterCommands> command_queue;
 
-		short int percentage_sent;
-		unsigned int lines_proccesed;
-		int total_gcode_lines;
-
-		int fd;
 		struct termios serial_settings;
-
-		//at the moment public for testing
-		std::queue<PrinterCommands> command_queue;	
-		PrinterState state = PrinterState::Idle;
 
 		//how much time to wait for data if there is none from the 
 		//printer
@@ -55,6 +44,16 @@ class Printer {
 			//and 25 miliseconds
 			.tv_nsec = 25000000
 		};
+
+		std::string path;
+		std::string file_to_send;
+
+		unsigned int lines_proccesed;
+		unsigned int total_gcode_lines;
+
+		int fd;
+		short int percentage_sent;
+		PrinterState state = PrinterState::Uninitialized;
 
 		int read_garbage();
 		int init(std::string path, uint64_t badurate);

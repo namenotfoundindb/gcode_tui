@@ -122,7 +122,7 @@ int send_file() {
 
 	log("started the gcode_thread");
 
-	if (!global_printer->initialized) return -1;
+	if (!global_printer->state == Uninitialized) return -1;
 	lock.unlock();
 
 	std::string line;

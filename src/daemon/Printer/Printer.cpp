@@ -32,6 +32,7 @@
 #include "../../commons.h"
 #include "Printer.h"
 #include "../../Cson.h"
+#include "State.h"
 
 int Printer::read_garbage() {
 	//Read all the garbage that the printer says, until an 
@@ -112,7 +113,8 @@ int Printer::init(std::string path, uint64_t baudrate) {
 	sleep(1);
 	read_garbage();
 	
-	initialized = true;
+	//change the printer state from Unitialized
+	state = Idle;
 
 	return 0;
 }
@@ -173,12 +175,7 @@ bool Printer::is_response_ok(char* buffer) {
 
 void Printer::disconnect() {
 	close(fd);
-	initialized = false;
-}
-
-int Printer::send_file(std::ofstream gcode_file) {
-	if (!initialized) return -1;
-	return 0;
+	state = Uninitialized;
 }
 
 //get a string containing cson formatted information about the printer status
@@ -187,14 +184,13 @@ Cson Printer::get_cson_status() {
 	//im not going to spend 5 months finding the best way
 	std::string str_info;
 
-	str_info.append("initialized:");
-	str_info.append(std::to_string(initialized) + "\n");
+	str_info.append("state:");
+	str_info.append(std::to_string(( int ) state) + "\n");
 
-	if (initialized) {
+	if (state != Uninitialized) {
 		//give more info if the printer is initilized
 		str_info.append(
 			"path:" + path + "\n" +
-			"state:" + std::to_string(state) + "\n" +
 			"fd:" + std::to_string(static_cast<int>(fd)) +
 			"\n");
 	}

@@ -16,7 +16,10 @@
 */
 
 #pragma once
-enum PrinterCommands {
+
+#include <stdint.h>
+
+enum PrinterCommands : uint8_t {
 	Start = 0,
 	Stop,
 	Pause,

@@ -16,8 +16,12 @@
 */
 
 #pragma once
-enum PrinterState {
-	Errored = 0,
+
+#include <stdint.h>
+
+enum PrinterState : uint8_t {
+	Uninitialized = 0,
+	Errored,
 	Printing,
 	Idle,
 	Stoped,
