@@ -212,3 +212,8 @@ Cson Printer::get_cson_status() {
 
 	return cson_info;
 }
+
+//this probably should not be here, but i don't know where else to put it
+bool Printer::should_line_be_sent(std::string line) {
+	return !(line[0] == '\n' || line[0] == ';');
+}

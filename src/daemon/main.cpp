@@ -480,6 +480,10 @@ int gcode_sender() {
 				//ourselfs
 				line.append("\n");
 
+				//probably not the best way to do it
+				if (!global_printer->should_line_be_sent(line))
+					continue;
+
 				if (global_printer->send(line) < 0) {
 					lock.lock();
 					global_printer->state = Errored;

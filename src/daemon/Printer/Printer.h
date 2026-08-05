@@ -58,10 +58,10 @@ class Printer {
 		int read_garbage();
 		int init(std::string path, uint64_t badurate);
 		int send(std::string gcode);
-		int send_file(std::ofstream gcode_file);
 		ssize_t read_char(char* ch);
 		int read_line(char* buffer);
 		bool is_response_ok(char* buffer);
 		void disconnect();
 		Cson get_cson_status();
+		bool should_line_be_sent(std::string line);
 };
