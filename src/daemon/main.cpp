@@ -354,10 +354,11 @@ int client_loop() {
 				//set global_printer at the end, so that the
 				//gcode_thread does not start sending gcode to
 				//early
-				global_printer = &printer;
 				lock.lock();
+				global_printer = &printer;
 				printer.total_gcode_lines = count_file_lines(
 						gcode_file);
+				lock.unlock();
 
 				//no need to call cv.notify_one because send
 				//command already does that
@@ -394,7 +395,7 @@ int gcode_sender() {
 
 	//if this line is empty ("") that means that the last line of gcode
 	//was sent succesfuly, if it's not empty, try sending that line again
-	std::string line = "h";
+	std::string line = "";
 
 	//NOTE: In this outer loop, lock stays locked most of the time, while
 	//in the inter loop it stays unlocked most of the time
@@ -480,14 +481,14 @@ int gcode_sender() {
 					}
 				}
 
+				//probably not the best way to do it
+				if (!global_printer->should_line_be_sent(line))
+					continue;
+
 				//if this is the last line, '\n' does
 				//not end the line, so we need to put it
 				//ourselfs
 				line.append("\n");
-
-				//probably not the best way to do it
-				if (!global_printer->should_line_be_sent(line))
-					continue;
 
 				if (global_printer->send(line) < 0) {
 					lock.lock();
