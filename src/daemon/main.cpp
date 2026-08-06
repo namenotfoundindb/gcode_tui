@@ -336,7 +336,11 @@ int client_loop() {
 
 			else if (client_command.command == "send") {
 				std::unique_lock<std::mutex> lock(mtx);
-				global_printer->file_to_send =
+				//NOTE: global_printer is NULL, so don't try to
+				//acces it.
+				//BTW this isn't here because i did just that,
+				//no way.
+				printer.file_to_send =
 					client_command.arguments["file"];
 				lock.unlock();
 
