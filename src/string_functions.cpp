@@ -109,8 +109,17 @@ std::pair<std::string, std::string> get_key_argument(std::string pair) {
 	return {key, argument};
 }
 
+//NOTE: count_file_lines should (in my opinion) take a reference or a pointer to
+//a file, not a filename, but i could not get this working with the file being
+//passed by reference and moving the file pointer to the beginning with
+//seekg/seekp, so until i figure it out, this is how it's going to be. Yes, i
+//know it's memeory ineficient. Il work something out in the future.
+
 //Returns -1 on error
-int count_file_lines(std::ifstream& file) {
+int count_file_lines(std::string filename) {
+	std::ifstream file;
+	file.open(filename);
+
 	if (!file.is_open()) return -1;
 
 	int line_count = 0;
@@ -118,6 +127,8 @@ int count_file_lines(std::ifstream& file) {
 	while (std::getline(file, temp)) {
 		line_count++;
 	}
+
+	file.close();
 
 	return line_count;
 }

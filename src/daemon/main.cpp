@@ -356,8 +356,14 @@ int client_loop() {
 				//early
 				lock.lock();
 				global_printer = &printer;
+
+				//i know this is ineficient because
+				//count_file_lines opens the gcode_file again.
+				//If you are more interested check out the lines
+				//above count_file_lines' definition in
+				//../string_functions.cpp
 				printer.total_gcode_lines = count_file_lines(
-						gcode_file);
+						printer.file_to_send);
 				lock.unlock();
 
 				//no need to call cv.notify_one because send
