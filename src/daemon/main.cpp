@@ -492,8 +492,11 @@ int gcode_sender() {
 				}
 
 				//probably not the best way to do it
-				if (!global_printer->should_line_be_sent(line))
+				if (!global_printer->should_line_be_sent(line)) {
+					//indicate line was proccesed succesfuly
+					line = "";
 					continue;
+				}
 
 				//if this is the last line, '\n' does
 				//not end the line, so we need to put it
