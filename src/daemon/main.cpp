@@ -351,11 +351,7 @@ int client_loop() {
 					continue;
 				}
 
-				//set global_printer at the end, so that the
-				//gcode_thread does not start sending gcode to
-				//early
 				lock.lock();
-				global_printer = &printer;
 
 				//i know this is ineficient because
 				//count_file_lines opens the gcode_file again.
@@ -364,6 +360,14 @@ int client_loop() {
 				//../string_functions.cpp
 				printer.total_gcode_lines = count_file_lines(
 						printer.file_to_send);
+
+				printer.lines_proccesed = 0;
+				printer.percentage_sent = 0;
+
+				//set global_printer at the end, so that the
+				//gcode_thread does not start sending gcode to
+				//early
+				global_printer = &printer;
 				lock.unlock();
 
 				//no need to call cv.notify_one because send
