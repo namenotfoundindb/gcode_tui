@@ -53,7 +53,7 @@ int Printer::read_garbage() {
 	return 0;
 }
 
-int Printer::init(std::string path, uint64_t baudrate) {
+int Printer::init(std::string path, uint64_t termios_baudrate) {
 	Printer::path = path;
 
 	//Initialize the serial_settings
@@ -90,8 +90,8 @@ int Printer::init(std::string path, uint64_t baudrate) {
 	serial_settings.c_cflag |= CS8;	//8 bits per character
 
 	//Set baud rate
-	cfsetispeed(&serial_settings, baudrate);
-	cfsetospeed(&serial_settings, baudrate);
+	cfsetispeed(&serial_settings, termios_baudrate);
+	cfsetospeed(&serial_settings, termios_baudrate);
 
 	//update settings
 	//TCSANOW means update them now

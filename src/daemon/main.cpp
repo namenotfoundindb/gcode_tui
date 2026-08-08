@@ -23,6 +23,7 @@
  */
 
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <format>
 #include <fstream>
@@ -42,6 +43,7 @@
 #include <condition_variable>
 
 #include "../commons.h"
+#include "int_to_termios_baudrate.h"
 #include "../string_functions.h"
 #include "daemon_functions.h"
 #include "../StringCommand.h"
@@ -329,8 +331,25 @@ int client_loop() {
 				//at the moment the baudrate is fixed
 				//and there is no check to make sure the 
 				//argument "printer" exists
+
+				uint64_t termios_baudrate;
+				try {
+					termios_baudrate =
+						to_termios_baudrate.at(
+						std::stoul(
+						client_command.arguments["baudrate"]
+						)
+						);
+				} catch (std::out_of_range& e) {
+					write(client,
+					"ERROR: Baudrate missing or not found!\n",
+					39);
+					continue;
+				}
+
+
 				printer.init(client_command.arguments["printer"]
-						, B115200);
+						, termios_baudrate);
 				write(client, "Initilized printer\n", 19);
 			}
 

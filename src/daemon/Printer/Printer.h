@@ -56,7 +56,7 @@ class Printer {
 		PrinterState state = PrinterState::Uninitialized;
 
 		int read_garbage();
-		int init(std::string path, uint64_t badurate);
+		int init(std::string path, uint64_t termios_badurate);
 		int send(std::string gcode);
 		ssize_t read_char(char* ch);
 		int read_line(char* buffer);
