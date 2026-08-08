@@ -308,9 +308,16 @@ int client_loop() {
 					help_text.length());
 
 			else if (client_command.command == "echo") {
-				write(client,
-					client_command.arguments["text"].c_str(),
-					client_command.arguments["text"].length());
+				auto text = client_command.get_arg("text");
+				if (!text) {
+					write(client,
+						"ERROR: Argument \"text\" needed!\n",
+						32);
+					continue;
+				}
+
+				write(client, text.value().c_str(),
+						text.value().length());
 				write(client, "\n", 1);
 			}
 

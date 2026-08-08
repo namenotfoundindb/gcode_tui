@@ -28,6 +28,8 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <optional>
+#include <stdexcept>
 
 #include "StringCommand.h"
 #include "string_functions.h"
@@ -43,7 +45,6 @@ int StringCommand::parse(std::string str) {
 	//if there is a newline at the end, erase it
 	if (str[str.length() - 1] == '\n') str.erase(str.length() - 1, 1);
 
-	data = str;
 	command = extract_first_word(&str);
 
 	if (str == "") return 0;
@@ -67,6 +68,16 @@ int StringCommand::parse(std::string str) {
 	return 0;
 }
 
+std::optional<std::string> StringCommand::get_arg(std::string arg) {
+	std::string value;
+	try {
+		value = arguments.at(arg);
+	} catch (std::out_of_range& e) {
+		return std::nullopt;
+	}
+
+	return value;
+}
 
 
 void StringCommand::print() {
