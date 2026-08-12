@@ -31,8 +31,8 @@
 #include <optional>
 #include <stdexcept>
 
-#include "StringCommand.h"
-#include "string_functions.h"
+#include "StringCommand.hpp"
+#include "string_functions.hpp"
 
 //Parse a string into the StringCommand object
 int StringCommand::parse(std::string str) {

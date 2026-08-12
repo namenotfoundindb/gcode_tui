@@ -21,9 +21,9 @@
 #include <utility>
 #include <map>
 
-#include "string_functions.h"
+#include "string_functions.hpp"
 
-#include "Cson.h"
+#include "Cson.hpp"
 
 //parse a cson string
 //returns the number of values

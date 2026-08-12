@@ -42,15 +42,15 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "../commons.h"
-#include "int_to_termios_baudrate.h"
-#include "../string_functions.h"
-#include "daemon_functions.h"
-#include "../StringCommand.h"
+#include "../commons.hpp"
+#include "int_to_termios_baudrate.hpp"
+#include "../string_functions.hpp"
+#include "daemon_functions.hpp"
+#include "../StringCommand.hpp"
 
-#include "Printer/Printer.h"
-#include "Printer/Commands.h"
-#include "Printer/State.h"
+#include "Printer/Printer.hpp"
+#include "Printer/Commands.hpp"
+#include "Printer/State.hpp"
 
 //#define DONT_CHDIR
 

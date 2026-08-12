@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../commons.h"
+#include "../commons.hpp"
 
 int daemonize() {
 	signal(SIGPIPE, SIG_IGN);

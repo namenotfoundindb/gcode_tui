@@ -25,9 +25,9 @@
 #include <queue>
 #include <condition_variable>
 
-#include "Commands.h"
-#include "State.h"
-#include "../../Cson.h"
+#include "Commands.hpp"
+#include "State.hpp"
+#include "../../Cson.hpp"
 
 class Printer {
 	public:

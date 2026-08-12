@@ -3,7 +3,7 @@
 
 #include <termios.h>
 
-#include "int_to_termios_baudrate.h"
+#include "int_to_termios_baudrate.hpp"
 
 //this is one way of doing it, probably not the best
 

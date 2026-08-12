@@ -29,10 +29,10 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "../../commons.h"
-#include "Printer.h"
-#include "../../Cson.h"
-#include "State.h"
+#include "../../commons.hpp"
+#include "Printer.hpp"
+#include "../../Cson.hpp"
+#include "State.hpp"
 
 int Printer::read_garbage() {
 	//Read all the garbage that the printer says, until an 
