@@ -46,7 +46,7 @@
 #include "int_to_termios_baudrate.hpp"
 #include "../string_functions.hpp"
 #include "daemon_functions.hpp"
-#include "../StringCommand.hpp"
+#include "../UserCommand.hpp"
 
 #include "Printer/Printer.hpp"
 #include "Printer/Commands.hpp"
@@ -284,7 +284,7 @@ int client_loop() {
 			//put it myself
 			buffer[read_bytes] = '\0';
 
-			StringCommand client_command;
+			UserCommand client_command;
 			if (client_command.parse({std::string(buffer)}) != 0) {
 				write(client, "ERROR parsing command!\n", 22);
 			}	

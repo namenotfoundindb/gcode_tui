@@ -15,12 +15,12 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/* StringCommand is a class that gives the programmer funcntions to deal
+/* UserCommand is a class that gives the programmer funcntions to deal
  * with commands of the following type:
  * send file:test.gcode baudrate:115200 random_argument:69
  *
  * It makes it easy to acces the arguments. Say we want to get the 
- * baudrate_argument from the StringCommand object command:
+ * baudrate_argument from the UserCommand object command:
  * std::string badurate = command.arguments["baudrate"];
  */
 
@@ -31,11 +31,11 @@
 #include <optional>
 #include <stdexcept>
 
-#include "StringCommand.hpp"
+#include "UserCommand.hpp"
 #include "string_functions.hpp"
 
-//Parse a string into the StringCommand object
-int StringCommand::parse(std::string str) {
+//Parse a string into the UserCommand object
+int UserCommand::parse(std::string str) {
 	//go trough the string and find key-value pairs like:
 	//send file:/home/casi/test.gcode
 	//^-command
@@ -68,7 +68,7 @@ int StringCommand::parse(std::string str) {
 	return 0;
 }
 
-std::optional<std::string> StringCommand::get_arg(std::string arg) {
+std::optional<std::string> UserCommand::get_arg(std::string arg) {
 	std::string value;
 	try {
 		value = arguments.at(arg);
@@ -80,7 +80,7 @@ std::optional<std::string> StringCommand::get_arg(std::string arg) {
 }
 
 
-void StringCommand::print() {
+void UserCommand::print() {
 	std::cout << "command: " << command << std::endl;
 
 	for (auto argument : arguments) {

@@ -20,7 +20,7 @@
 #include <map>
 #include <optional>
 
-class StringCommand {
+class UserCommand {
 	public:
 		std::string command;
 		std::map<std::string, std::string> arguments;

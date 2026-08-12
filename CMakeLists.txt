@@ -15,7 +15,7 @@ add_executable(gcode_tui_daemon
 	src/daemon/daemon_functions.cpp
 	src/daemon/int_to_termios_baudrate.cpp
 	src/daemon/Printer/Printer.cpp
-	src/StringCommand.cpp
+	src/UserCommand.cpp
 	src/string_functions.cpp
 	src/Cson.cpp
 )
