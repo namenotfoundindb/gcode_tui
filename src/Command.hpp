@@ -41,3 +41,10 @@ struct Command {
 	std::function<int(CommandContext&)> action;
 	std::string description;
 };
+
+#define ActionShutdown 2
+#define ActionDisconnectClient 1
+#define ReturnSuccesful 0
+#define ReturnCommandNotFound -1
+#define ReturnCommandErrored -2
+#define ReturnNotEnoughArgs -3

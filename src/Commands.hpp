@@ -32,10 +32,12 @@ namespace Commands {
 
 	//Actual commands
 	extern Command echo;
+	extern Command help;
 
 	//A map of all to commands
 	const std::map<std::string, Command&> list = {
-		cmdentry(echo)
+		cmdentry(echo),
+		cmdentry(help)
 	};
 }
 

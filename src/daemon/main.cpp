@@ -67,30 +67,6 @@ std::mutex mtx;
 //condition_variable between the gcode_thread and the main thread
 std::condition_variable cv;
 
-std::string help_text = "\
-gcode_tui: Program that drips gcode in the background to a machine\n\
-Copyright (C) 2026 namenotfoundindb\n\
-\n\
-COMMANDS AND ARGUMENTS:\n\
-  Commands work like you think the do, just type them in!\n\
-  Arguments work by typing the argument name, a \':\' and then the\n\
-value. If the value contains spaces, put the whole value in quotes.\n\
-EXAMPLES:\n\
-   echo text:Hello\n\
-   echo text:\"Hello world!\"\n\
-\n\
-SUPPORTED COMMANDS:\n\
-  help - display this help message\n\
-  echo - print out text\n\
-  init - initilize the printer\n\
-  terminal - connect to the printer with a terminal\n\
-  send - sends a file to the printer\n\
-  status - get printer status (experimental)\n\
-  exit - disconnect from the daemon\n\
-  shutdown - shutdown the daemon\n\
-\n\
-";
-
 int client_socket;
 int client;
 
@@ -306,9 +282,23 @@ int client_loop() {
 					.printer = printer
 				};
 
-				find_and_execute_Command(context);
+				int rv = find_and_execute_Command(context);
+
+				if (rv == ActionDisconnectClient) {
+					close(client);
+					break;
+				}
+
+				else if (rv == ActionShutdown) {
+					free(buffer);
+					close(client);
+					printer.disconnect();
+					return 0;
+				}
+
 			}
 
+			/*
 
 			else if (client_command.command == "exit") {
 				close(client);
@@ -425,6 +415,7 @@ int client_loop() {
 				write(client, cson_info.data.c_str(),
 						cson_info.data.length());
 			}
+			*/
 
 			else write(client, "Unknown command! Try \"help\"\n",
 					28);

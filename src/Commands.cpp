@@ -23,7 +23,6 @@
 
 int Commands::Functions::echo(CommandContext& context) {
 	auto text = context.usrcmd.get_arg("text");
-	if (!text) return -1;
 
 	write(context.client, ((std::string) (text.value() + "\n")).c_str(),
 			text.value().length() + 1);
@@ -34,4 +33,38 @@ Command Commands::echo = {
 	.required_arguments = {"text"},
 	.action = Commands::Functions::echo,
 	.description = "Print text to the console"
+};
+
+
+int Commands::Functions::help(CommandContext& context) {
+	std::string help_text = "\
+gcode_tui: Program that drips gcode in the background to a machine\n\
+Copyright (C) 2026 namenotfoundindb\n\
+\n\
+COMMANDS AND ARGUMENTS:\n\
+Commands work like you think the do, just type them in!\n\
+Arguments work by typing the argument name, a \':\' and then the\n\
+value. If the value contains spaces, put the whole value in quotes.\n\
+EXAMPLES:\n\
+echo text:Hello\n\
+echo text:\"Hello world!\"\n\
+\n\
+SUPPORTED COMMANDS:\n\
+";
+
+	for (auto cmd : Commands::list) {
+		help_text.append(cmd.first + " - " + cmd.second.description + 
+				"\n");
+	}
+
+	help_text.append("\n");
+
+	write(context.client, help_text.c_str(), help_text.length());
+	return 0;
+}
+
+Command Commands::help = {
+	.required_arguments = {},
+	.action = Commands::Functions::help,
+	.description = "Print help about commands"
 };
