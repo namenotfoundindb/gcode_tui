@@ -28,16 +28,22 @@ namespace Commands {
 	namespace Functions {
 		int echo(CommandContext& context);
 		int help(CommandContext& context);
+		int exit(CommandContext& context);
+		int shutdown(CommandContext& context);
 	}
 
 	//Actual commands
 	extern Command echo;
 	extern Command help;
+	extern Command exit;
+	extern Command shutdown;
 
 	//A map of all to commands
 	const std::map<std::string, Command&> list = {
 		cmdentry(echo),
-		cmdentry(help)
+		cmdentry(help),
+		cmdentry(exit),
+		cmdentry(shutdown)
 	};
 }
 

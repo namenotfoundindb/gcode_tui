@@ -271,8 +271,8 @@ int client_loop() {
 			//at the moment for testing
 			if (Command_exists(client_command.command)) {
 				write(client,
-	"Commands exists in Commands::list map, will use that\n",
-						54);
+	"Command exists in Commands::list map, will use that\n",
+						53);
 
 				//give the command some context
 				CommandContext context = {
@@ -286,10 +286,14 @@ int client_loop() {
 
 				if (rv == ActionDisconnectClient) {
 					close(client);
+					log("Client disconnected");
 					break;
 				}
 
 				else if (rv == ActionShutdown) {
+					//int the future will have to put log in
+					//its on source file
+					log("Shutting down...");
 					free(buffer);
 					close(client);
 					printer.disconnect();

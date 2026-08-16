@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include "Commands.hpp"
+#include "Command.hpp"
 
 //Actual command defintions and functions
 
@@ -67,4 +68,24 @@ Command Commands::help = {
 	.required_arguments = {},
 	.action = Commands::Functions::help,
 	.description = "Print help about commands"
+};
+
+int Commands::Functions::exit(CommandContext& context) {
+	write(context.client, "Goodbye.\n", 10);
+	return ActionDisconnectClient;
+}
+
+Command Commands::exit = {
+	.action = Commands::Functions::exit,
+	.description = "Disconnect from the daemon"
+};
+
+int Commands::Functions::shutdown(CommandContext& context) {
+	write(context.client, "Shuting down...\n", 17);
+	return ActionShutdown;
+}
+
+Command Commands::shutdown = {
+	.action = Commands::Functions::shutdown,
+	.description = "Shutdown gcode_tui_daemon"
 };
