@@ -21,13 +21,18 @@
 #include <functional>
 #include <string>
 
+#include <mutex>
+#include "daemon/Printer/Printer.hpp"
+
 #include "UserCommand.hpp"
 
 //struct containg info (or *context*) that a command might need when executing
-//in the future will contain client file descriptors, a pointer to a Printer and
-//so on
 struct CommandContext {
 	UserCommand& usrcmd;
+	//connected clients file descriptor
+	int client;
+	std::mutex& mtx;
+	Printer& printer;
 };
 
 //info about a command. Probably could make it's members constant

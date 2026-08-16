@@ -43,3 +43,7 @@ int find_and_execute_Command(CommandContext& context) {
 
 	return try_execute_Command(cmd, context);
 }
+
+bool Command_exists(std::string cmdname) {
+	return (bool) Commands::list.count(cmdname);
+}

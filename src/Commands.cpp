@@ -15,7 +15,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
+#include <unistd.h>
 
 #include "Commands.hpp"
 
@@ -25,7 +25,8 @@ int Commands::Functions::echo(CommandContext& context) {
 	auto text = context.usrcmd.get_arg("text");
 	if (!text) return -1;
 
-	std::cout << text.value() << std::endl;
+	write(context.client, ((std::string) (text.value() + "\n")).c_str(),
+			text.value().length() + 1);
 	return 0;
 }
 

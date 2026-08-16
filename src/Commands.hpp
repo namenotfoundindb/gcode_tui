@@ -42,3 +42,4 @@ namespace Commands {
 //Should only be called by find_and_execute_command
 int try_execute_Command(Command& cmd, CommandContext& context);
 int find_and_execute_Command(CommandContext& context);
+bool Command_exists(std::string cmdname);

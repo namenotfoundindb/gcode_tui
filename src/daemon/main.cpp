@@ -52,6 +52,9 @@
 #include "Printer/Commands.hpp"
 #include "Printer/State.hpp"
 
+#include "../Command.hpp"
+#include "../Commands.hpp"
+
 //#define DONT_CHDIR
 
 const short int formatted_time_length = 32;
@@ -289,6 +292,24 @@ int client_loop() {
 				write(client, "ERROR parsing command!\n", 22);
 			}	
 
+			//at the moment for testing
+			if (Command_exists(client_command.command)) {
+				write(client,
+	"Commands exists in Commands::list map, will use that\n",
+						54);
+
+				//give the command some context
+				CommandContext context = {
+					.usrcmd = client_command,
+					.client = client,
+					.mtx = mtx,
+					.printer = printer
+				};
+
+				find_and_execute_Command(context);
+			}
+
+
 			else if (client_command.command == "exit") {
 				close(client);
 				log("Ended connection with client");
@@ -306,20 +327,6 @@ int client_loop() {
 			else if (client_command.command == "help") 
 				write(client, help_text.c_str(),
 					help_text.length());
-
-			else if (client_command.command == "echo") {
-				auto text = client_command.get_arg("text");
-				if (!text) {
-					write(client,
-						"ERROR: Argument \"text\" needed!\n",
-						32);
-					continue;
-				}
-
-				write(client, text.value().c_str(),
-						text.value().length());
-				write(client, "\n", 1);
-			}
 
 			else if (client_command.command == "terminal") {
 				write(client, 
