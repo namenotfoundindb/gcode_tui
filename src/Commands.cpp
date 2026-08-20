@@ -15,10 +15,13 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <stdexcept>
 #include <unistd.h>
 
 #include "Commands.hpp"
 #include "Command.hpp"
+
+#include "daemon/int_to_termios_baudrate.hpp"
 
 //Actual command defintions and functions
 
@@ -88,4 +91,34 @@ int Commands::Functions::shutdown(CommandContext& context) {
 Command Commands::shutdown = {
 	.action = Commands::Functions::shutdown,
 	.description = "Shutdown gcode_tui_daemon"
+};
+
+
+int Commands::Functions::init(CommandContext& context) {
+	int baudrate = std::stoul(context.usrcmd.arguments["baudrate"]);
+	int termios_baudrate;
+	try {
+		termios_baudrate = to_termios_baudrate.at(50);
+	} catch (std::out_of_range& e) {
+		write(context.client, "ERROR: No such baudrate!\n", 26);
+		return ReturnCommandErrored;
+	}
+
+	if (context.printer.init(context.usrcmd.arguments["printer"],
+				termios_baudrate) == ReturnSuccesful) {
+		write(context.client, "Initilized printer!\n", 21);
+	}
+
+	//i don't think Printer::init can return -1, but il stil put this here
+	else {
+		write(context.client, "ERROR: Initilizing printer!\n", 29);
+	}
+
+	return 0;
+}
+
+Command Commands::init = {
+	.required_arguments = {"printer", "baudrate"},
+	.action = Commands::Functions::init,
+	.description = "Initilaize a printer"
 };
