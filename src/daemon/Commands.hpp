@@ -33,6 +33,7 @@ namespace Commands {
 		int init(CommandContext& context);
 		int send(CommandContext& context);
 		int terminal(CommandContext& context);
+		int status(CommandContext& context);
 	}
 
 	//Actual commands
@@ -43,6 +44,7 @@ namespace Commands {
 	extern Command init;
 	extern Command send;
 	extern Command terminal;
+	extern Command status;
 
 	//A map of all to commands
 	const std::map<std::string, Command&> list = {
@@ -52,7 +54,8 @@ namespace Commands {
 		cmdentry(shutdown),
 		cmdentry(init),
 		cmdentry(send),
-		cmdentry(terminal)
+		cmdentry(terminal),
+		cmdentry(status)
 	};
 }
 

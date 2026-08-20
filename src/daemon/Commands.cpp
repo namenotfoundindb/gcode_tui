@@ -244,3 +244,24 @@ Command Commands::terminal = {
 	.action = Commands::Functions::terminal,
 	.description = "Send/Receive to/from the printer (only for testing)"
 };
+
+int Commands::Functions::status(CommandContext& context) {
+	//calculate the percentage sent first
+	{
+		std::lock_guard<std::mutex> lock(context.mtx);
+		context.printer.percentage_sent = (int) (
+				( (float) context.printer.lines_proccesed /
+				  (float) context.printer.total_gcode_lines)
+				* 100.0f);
+	}
+
+	Cson cson_info = context.printer.get_cson_status();
+	write(context.client, cson_info.data.c_str(), cson_info.data.length());
+	return 0;
+}
+
+Command Commands::status = {
+	.required_arguments = {},
+	.action = Commands::Functions::status,
+	.description = "Get status about the printer/print job"
+};

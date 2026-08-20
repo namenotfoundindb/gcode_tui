@@ -237,21 +237,6 @@ int client_loop() {
 				log("Started sending file");
 			}
 
-			else if (client_command.command == "status") {
-				//calculate the percentage sent first
-				{
-					std::lock_guard<std::mutex> lock(mtx);
-					printer.percentage_sent = (int) (
-						( (float) printer.lines_proccesed /
-						  (float) printer.total_gcode_lines)
-						* 100.0f);
-				}
-
-				Cson cson_info =
-					printer.get_cson_status();
-				write(client, cson_info.data.c_str(),
-						cson_info.data.length());
-			}
 			*/
 
 			else write(client, "Unknown command! Try \"help\"\n",
