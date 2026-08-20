@@ -110,142 +110,44 @@ int client_loop() {
 				write(client, "ERROR parsing command!\n", 22);
 			}	
 
-			//at the moment for testing
-			if (Command_exists(client_command.command)) {
-				write(client,
-	"Command exists in Commands::list map, will use that\n",
-						53);
-
-				//give the command some context
-				CommandContext context = {
-					.usrcmd = client_command,
-					.client = client,
-					.printer = printer,
-
-					.global_printer = global_printer,
-
-					.mtx = mtx,
-					.cv = cv,
-				};
-
-				int rv = find_and_execute_Command(context);
-
-				if (rv == ActionDisconnectClient) {
-					close(client);
-					log("Client disconnected");
-					break;
-				}
-
-				else if (rv == ActionShutdown) {
-					//int the future will have to put log in
-					//its on source file
-					log("Shutting down...");
-					free(buffer);
-					close(client);
-					printer.disconnect();
-					return 0;
-				}
-
+			if (!Command_exists(client_command.command)) {
+				write(client, "Unknown command! Try \"help\"\n",
+						28);
+				continue;
 			}
 
-			/*
+			//give the command some context
+			CommandContext context = {
+				.usrcmd = client_command,
+				.client = client,
+				.printer = printer,
 
-			else if (client_command.command == "exit") {
+				.global_printer = global_printer,
+
+				.mtx = mtx,
+				.cv = cv,
+			};
+
+			log("Client executes: " + std::string(buffer));
+
+			int rv = find_and_execute_Command(context);
+
+			if (rv == ActionDisconnectClient) {
 				close(client);
-				log("Ended connection with client");
+				log("Client disconnected");
 				break;
 			}
 
-			else if (client_command.command == "shutdown") {
-				log("Shuting down gcode_tui_daemon...");
+			else if (rv == ActionShutdown) {
+				//int the future will have to put log in
+				//its on source file
+				log("Shutting down...");
 				free(buffer);
 				close(client);
 				printer.disconnect();
 				return 0;
 			}
-
-			else if (client_command.command == "help") 
-				write(client, help_text.c_str(),
-					help_text.length());
-
-			else if (client_command.command == "init") {
-				//at the moment the baudrate is fixed
-				//and there is no check to make sure the 
-				//argument "printer" exists
-
-				uint64_t termios_baudrate;
-				try {
-					termios_baudrate =
-						to_termios_baudrate.at(
-						std::stoul(
-						client_command.arguments["baudrate"]
-						)
-						);
-				} catch (std::out_of_range& e) {
-					write(client,
-					"ERROR: Baudrate missing or not found!\n",
-					39);
-					continue;
-				}
-
-
-				printer.init(client_command.arguments["printer"]
-						, termios_baudrate);
-				write(client, "Initilized printer\n", 19);
-			}
-
-			else if (client_command.command == "send") {
-				std::unique_lock<std::mutex> lock(mtx);
-				//NOTE: global_printer is NULL, so don't try to
-				//acces it.
-				//BTW this isn't here because i did just that,
-				//no way.
-				printer.file_to_send =
-					client_command.arguments["file"];
-				lock.unlock();
-
-				gcode_file.open(printer.file_to_send);
-
-				if (!gcode_file.is_open()) {
-					write(client, "Could not open file!\n", 22);
-					continue;
-				}
-
-				lock.lock();
-
-				//i know this is ineficient because
-				//count_file_lines opens the gcode_file again.
-				//If you are more interested check out the lines
-				//above count_file_lines' definition in
-				//../string_functions.cpp
-				printer.total_gcode_lines = count_file_lines(
-						printer.file_to_send);
-
-				printer.lines_proccesed = 0;
-				printer.percentage_sent = 0;
-
-				//set global_printer at the end, so that the
-				//gcode_thread does not start sending gcode to
-				//early
-				global_printer = &printer;
-				lock.unlock();
-
-				//no need to call cv.notify_one because send
-				//command already does that
-				send_command(Start);
-
-				log("Started sending file");
-			}
-
-			*/
-
-			else write(client, "Unknown command! Try \"help\"\n",
-					28);
-
-			log("Sent message to client");
-			sleep(1);
 		}
-
 	}	
 	close(client);
 	free(buffer);
