@@ -74,52 +74,6 @@ Printer* global_printer = NULL;
 
 bool end_gcode_thread = false;
 
-/*
-void send_command(PrinterCommands cmd) {
-	//a separate scope so the lock_guard unlocks
-	//when going out of scope
-	{
-		std::lock_guard<std::mutex> lock(mtx);
-		global_printer->command_queue.push(cmd);
-	}
-
-	//notify the gcode sender thread that a command has been pushed
-	cv.notify_one();
-}
-*/
-
-int terminal_loop(Printer printer, int client) {
-	char* buffer = ( char* ) malloc(BUFFER_SIZE);
-	ssize_t read_bytes;
-
-	while (true) {
-		write(client, "SEND: ", 6);
-		read_bytes = read(client, buffer, BUFFER_SIZE);
-	
-		//add the null terminator
-		buffer[read_bytes] = '\0';
-
-		if (strcmp(buffer, "exit\n") == 0) { free(buffer); return 0; }
-
-		printer.send((std::string{buffer}));
-
-		do {
-			read_bytes = printer.read_line(buffer);
-
-			if (read_bytes < 0) {
-				 write(client, 
-"ERROR reading printer's response.\n", 35);
-				free(buffer); return -1; }
-
-			write(client, "RECV: ", 6);
-			write(client, buffer, strlen(buffer));
-		} while (!printer.is_response_ok(buffer));
-	}
-
-	free(buffer);
-	return 0;
-}
-
 int client_loop() {
 	char* buffer = ( char* ) malloc(BUFFER_SIZE);
 	strcpy(buffer, "Hello client! This is gcode_tui_daemon!\n");
@@ -213,19 +167,6 @@ int client_loop() {
 			else if (client_command.command == "help") 
 				write(client, help_text.c_str(),
 					help_text.length());
-
-			else if (client_command.command == "terminal") {
-				write(client, 
-"You have entered terminal mode, type \"exit\" to go back.\n", 56);
-
-				log("Client entered terminal mode");
-
-				terminal_loop(printer, client);
-				write(client, "Exited terminal mode\n", 21);
-
-				log("Client left terminal mode");
-
-			}
 
 			else if (client_command.command == "init") {
 				//at the moment the baudrate is fixed

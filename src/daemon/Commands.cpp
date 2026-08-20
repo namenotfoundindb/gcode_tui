@@ -18,6 +18,8 @@
 #include <stdexcept>
 #include <unistd.h>
 
+#include <string.h>
+
 #include "Commands.hpp"
 #include "../Command.hpp"
 
@@ -26,6 +28,8 @@
 #include "log.hpp"
 #include "Printer/Commands.hpp"
 #include "Printer/State.hpp"
+
+#include "../commons.hpp"
 
 //Some helper functions
 void send_command(PrinterCommands cmd, CommandContext& context) {
@@ -128,7 +132,6 @@ int Commands::Functions::init(CommandContext& context) {
 	else {
 		write(context.client, "ERROR: Initilizing printer!\n", 29);
 	}
-
 	return 0;
 }
 
@@ -189,4 +192,55 @@ Command Commands::send = {
 	.required_arguments = {"file"},
 	.action = Commands::Functions::send,
 	.description = "Send gcode file to the printer"
+};
+
+
+int Commands::Functions::terminal(CommandContext& context) {
+	write(context.client,
+		"You have entered terminal mode, type \"exit\" to go back.\n",
+		56);
+	log("Client entered terminal mode");
+
+	char* buffer = ( char* ) malloc(BUFFER_SIZE);
+	ssize_t read_bytes;
+
+	while (true) {
+		write(context.client, "SEND: ", 6);
+		read_bytes = read(context.client, buffer, BUFFER_SIZE);
+
+		//add the null terminator
+		buffer[read_bytes] = '\0';
+
+		if (strcmp(buffer, "exit\n") == 0) break;
+
+		context.printer.send((std::string{buffer}));
+
+		do {
+			read_bytes = context.printer.read_line(buffer);
+
+			if (read_bytes < 0) {
+				 write(context.client,
+"ERROR reading printer's response.\n\
+ Exited terminal mode.\n",58);
+				 free(buffer);
+				 return ReturnCommandErrored;
+			}
+
+			write(context.client, "RECV: ", 6);
+			write(context.client, buffer, strlen(buffer));
+
+		} while (!context.printer.is_response_ok(buffer));
+	}
+	free(buffer);
+
+	write(context.client, "Exited terminal mode\n", 21);
+	log("Client left terminal mode");
+
+	return 0;
+}
+
+Command Commands::terminal = {
+	.required_arguments = {},
+	.action = Commands::Functions::terminal,
+	.description = "Send/Receive to/from the printer (only for testing)"
 };
