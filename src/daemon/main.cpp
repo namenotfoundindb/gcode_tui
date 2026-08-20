@@ -74,6 +74,7 @@ Printer* global_printer = NULL;
 
 bool end_gcode_thread = false;
 
+/*
 void send_command(PrinterCommands cmd) {
 	//a separate scope so the lock_guard unlocks
 	//when going out of scope
@@ -85,6 +86,7 @@ void send_command(PrinterCommands cmd) {
 	//notify the gcode sender thread that a command has been pushed
 	cv.notify_one();
 }
+*/
 
 int terminal_loop(Printer printer, int client) {
 	char* buffer = ( char* ) malloc(BUFFER_SIZE);
@@ -164,8 +166,12 @@ int client_loop() {
 				CommandContext context = {
 					.usrcmd = client_command,
 					.client = client,
+					.printer = printer,
+
+					.global_printer = global_printer,
+
 					.mtx = mtx,
-					.printer = printer
+					.cv = cv,
 				};
 
 				int rv = find_and_execute_Command(context);

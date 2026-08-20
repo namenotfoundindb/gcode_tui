@@ -22,6 +22,8 @@
 #include <string>
 
 #include <mutex>
+#include <condition_variable>
+
 #include "daemon/Printer/Printer.hpp"
 
 #include "UserCommand.hpp"
@@ -31,8 +33,13 @@ struct CommandContext {
 	UserCommand& usrcmd;
 	//connected clients file descriptor
 	int client;
-	std::mutex& mtx;
 	Printer& printer;
+	
+	//probabably not the best way of passing global_printer
+	Printer*& global_printer;
+
+	std::mutex& mtx;
+	std::condition_variable& cv;
 };
 
 //info about a command. Probably could make it's members constant

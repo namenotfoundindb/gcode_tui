@@ -22,6 +22,20 @@
 #include "../Command.hpp"
 
 #include "int_to_termios_baudrate.hpp"
+#include "../string_functions.hpp"
+#include "log.hpp"
+#include "Printer/Commands.hpp"
+
+//Some helper functions
+void send_command(PrinterCommands cmd, CommandContext& context) {
+	{
+		std::lock_guard<std::mutex> lock(context.mtx);
+		context.printer.command_queue.push(cmd);
+	}
+
+	//notify the gcode sender thread that a command has been pushed
+	context.cv.notify_one();
+}
 
 //Actual command defintions and functions
 
@@ -121,4 +135,52 @@ Command Commands::init = {
 	.required_arguments = {"printer", "baudrate"},
 	.action = Commands::Functions::init,
 	.description = "Initilaize a printer"
+};
+
+int Commands::Functions::send(CommandContext& context) {
+	std::unique_lock<std::mutex> lock(context.mtx);
+	//NOTE: global_printer is NULL, so don't try to acces it.
+	//BTW this isn't here because i did just that,
+	//no way.
+	context.printer.file_to_send = context.usrcmd.arguments["file"];
+	lock.unlock();
+
+	context.printer.gcode_file.open(context.printer.file_to_send);
+
+	if (!context.printer.gcode_file.is_open()) {
+		write(context.client, "ERROR: Could not open file!\n", 22);
+		return ReturnCommandErrored;
+	}
+
+	lock.lock();
+
+	//i know this is ineficient because
+	//count_file_lines opens the gcode_file again.
+	//If you are more interested check out the lines
+	//above count_file_lines' definition in
+	//../string_functions.cpp
+	context.printer.total_gcode_lines = count_file_lines(
+			context.printer.file_to_send);
+
+	context.printer.lines_proccesed = 0;
+	context.printer.percentage_sent = 0;
+
+	//set global_printer at the end, so that the
+	//gcode_thread does not start sending gcode to
+	//early
+	context.global_printer = &context.printer;
+	lock.unlock();
+
+	//no need to call cv.notify_one because send
+	//command already does that
+	send_command(Start, context);
+
+	log("Started sending file");
+	return 0;
+}
+
+Command Commands::send = {
+	.required_arguments = {"file"},
+	.action = Commands::Functions::send,
+	.description = "Send gcode file to the printer"
 };
