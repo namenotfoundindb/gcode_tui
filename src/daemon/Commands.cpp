@@ -25,6 +25,7 @@
 #include "../string_functions.hpp"
 #include "log.hpp"
 #include "Printer/Commands.hpp"
+#include "Printer/State.hpp"
 
 //Some helper functions
 void send_command(PrinterCommands cmd, CommandContext& context) {
@@ -140,8 +141,13 @@ Command Commands::init = {
 int Commands::Functions::send(CommandContext& context) {
 	std::unique_lock<std::mutex> lock(context.mtx);
 	//NOTE: global_printer is NULL, so don't try to acces it.
-	//BTW this isn't here because i did just that,
-	//no way.
+	//BTW this isn't here because i did just that, no way.
+
+	if (context.printer.state == Uninitialized) {
+		write(context.client, "ERROR: Printer is uninitilized!\n", 33);
+		return ReturnCommandErrored;
+	}
+
 	context.printer.file_to_send = context.usrcmd.arguments["file"];
 	lock.unlock();
 
