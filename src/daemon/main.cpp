@@ -72,106 +72,7 @@ int client;
 //if set to NULL the gcode_thread waits until it is no longer NULL
 Printer* global_printer = NULL;
 
-std::ifstream gcode_file;
-
 bool end_gcode_thread = false;
-
-
-//TODO: continue writing the send_file function to a working state
-
-//A temporary function to test multitheading and sending files
-//In the future i plan to integrate this functions (and the 
-//variables it uses) in the Printer class
-int send_file() {
-	std::unique_lock<std::mutex> lock(mtx);
-	lock.lock();
-
-	log("started the gcode_thread");
-
-	if (!global_printer->state == Uninitialized) return -1;
-	lock.unlock();
-
-	std::string line;
-	int bytes_read = 0;
-	char* buffer = ( char* ) malloc(BUFFER_SIZE);
-	char* no_newline_buffer = ( char* ) malloc(BUFFER_SIZE);
-
-	std::ifstream file;
-	file.open(global_printer->file_to_send);
-
-	//put a lock on mtx so that this thread does not
-	//acces/modify variables at the as the main thread
-
-	while (true) {
-		lock.lock();
-		cv.wait(lock, [&] {return global_printer != NULL;});
-
-		//wait until there are commands in the queue or
-		//we are printing
-		cv.wait(lock, [&] {return !global_printer->command_queue.empty()
-				|| global_printer->state == PrinterState::Printing;
-				});
-		
-		if (!global_printer->command_queue.empty()) {
-			PrinterCommands cmd = global_printer->command_queue.front();
-			global_printer->command_queue.pop();
-			lock.unlock();
-
-			if (cmd == PrinterCommands::Stop)
-				global_printer->state = PrinterState::Stoped;
-			else if (cmd == PrinterCommands::Start)
-				global_printer->state = PrinterState::Printing;
-			else if (cmd == PrinterCommands::Stop)
-				global_printer->state = PrinterState::Stoped;
-			else if (cmd == PrinterCommands::Pause)
-				global_printer->state = PrinterState::Paused;
-		}
-
-		if (global_printer->state == PrinterState::Printing) {
-			lock.lock();
-			if (!getline(file, line)) {
-				global_printer->state = PrinterState::Finished;
-				log("Finished sending file");
-			}
-
-			 if (global_printer->send(line) < 0) {
-				 global_printer->state = PrinterState::Errored;
-				 log("ERROR sending line to printer!");
-			 }
-			 else log(std::format("SENT: {}", line));
-
-			do {
-				bytes_read = global_printer->read_line(buffer);
-				if (bytes_read < 0) 
-					global_printer->state = PrinterState::Errored;
-				else {
-					strcpy(no_newline_buffer, buffer);
-					
-					//delete the newline
-					//-2 to reach the newline
-					//h e l l o \n \0
-					//                ^ here is strlen
-					//           ^ here is strlen - 2
-					no_newline_buffer[bytes_read - 2] = '\0';
-					log(std::format("RECV: {}", buffer));
-				}
-
-			} while (!global_printer->is_response_ok(buffer) &&
-					global_printer->state != PrinterState::Errored);
-			lock.unlock();
-		}
-
-	}
-	file.close();
-	
-	//make sure this_thread did not lock it forever
-	lock.unlock();
-	
-	free(buffer);
-	free(no_newline_buffer);
-
-	return 0;
-}
 
 void send_command(PrinterCommands cmd) {
 	//a separate scope so the lock_guard unlocks
@@ -495,7 +396,8 @@ int gcode_sender() {
 				//succesfuly so we can read another
 
 				if (line.length() == 0) {
-					if (!std::getline(gcode_file, line)) {
+					if (!std::getline(global_printer->gcode_file,
+								line)) {
 						lock.lock();
 						global_printer->state = Finished;
 
@@ -505,7 +407,7 @@ int gcode_sender() {
 						//again
 						global_printer = NULL;
 
-						gcode_file.close();
+						global_printer->gcode_file.close();
 
 						//don't unlock the lock as the
 						//outer loop expects in locked

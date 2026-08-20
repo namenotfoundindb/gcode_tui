@@ -24,6 +24,7 @@
 
 #include <queue>
 #include <condition_variable>
+#include <fstream>
 
 #include "Commands.hpp"
 #include "State.hpp"
@@ -47,6 +48,8 @@ class Printer {
 
 		std::string path;
 		std::string file_to_send;
+
+		std::ifstream gcode_file;
 
 		unsigned int lines_proccesed;
 		unsigned int total_gcode_lines;
