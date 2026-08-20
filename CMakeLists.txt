@@ -20,4 +20,5 @@ add_executable(gcode_tui_daemon
 	src/Cson.cpp
 	src/Command.cpp
 	src/Commands.cpp
+	src/daemon/log.cpp
 )

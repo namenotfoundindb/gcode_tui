@@ -47,6 +47,7 @@
 #include "../string_functions.hpp"
 #include "daemon_functions.hpp"
 #include "../UserCommand.hpp"
+#include "log.hpp"
 
 #include "Printer/Printer.hpp"
 #include "Printer/Commands.hpp"
@@ -58,9 +59,6 @@
 //#define DONT_CHDIR
 
 const short int formatted_time_length = 32;
-
-std::string log_file_path = "/var/log/gcode_tui_daemon.log";
-std::ofstream log_file;
 
 //mutex between the gcode_thread and the main thread
 std::mutex mtx;
@@ -78,19 +76,6 @@ std::ifstream gcode_file;
 
 bool end_gcode_thread = false;
 
-void log(std::string text) {
-	time_t timestamp;
-	time(&timestamp);
-
-	//ctime returns a pointer to a nul terminated strings that contains
-	//a newline before the null terminator. here i am removing the neline
-	char* time_string = ctime(&timestamp);
-
-	//Put a null terminator where the newline was (str_length - 1)
-	time_string[strlen(time_string) - 1] = '\0';
-	
-	log_file << time_string << ": " << text << std::endl;
-}
 
 //TODO: continue writing the send_file function to a working state
 
