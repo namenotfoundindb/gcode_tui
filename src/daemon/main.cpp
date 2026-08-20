@@ -407,13 +407,15 @@ int gcode_sender() {
 						lock.lock();
 						global_printer->state = Finished;
 
+						//close the gcode file BEFORE
+						//setting global_printer to null
+						global_printer->gcode_file.close();
+
 						//set global printer to NULL so
 						//the gcode_thread does not
 						//start sending the same file
 						//again
 						global_printer = NULL;
-
-						global_printer->gcode_file.close();
 
 						//don't unlock the lock as the
 						//outer loop expects in locked
