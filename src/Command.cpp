@@ -19,7 +19,7 @@
 #include <string>
 
 #include "Command.hpp"
-#include "Commands.hpp"
+#include "daemon/Commands.hpp"
 
 #include "UserCommand.hpp"
 

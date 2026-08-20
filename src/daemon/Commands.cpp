@@ -19,9 +19,9 @@
 #include <unistd.h>
 
 #include "Commands.hpp"
-#include "Command.hpp"
+#include "../Command.hpp"
 
-#include "daemon/int_to_termios_baudrate.hpp"
+#include "int_to_termios_baudrate.hpp"
 
 //Actual command defintions and functions
 

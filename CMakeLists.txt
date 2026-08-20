@@ -19,6 +19,6 @@ add_executable(gcode_tui_daemon
 	src/string_functions.cpp
 	src/Cson.cpp
 	src/Command.cpp
-	src/Commands.cpp
+	src/daemon/Commands.cpp
 	src/daemon/log.cpp
 )

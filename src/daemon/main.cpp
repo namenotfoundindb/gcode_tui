@@ -54,7 +54,7 @@
 #include "Printer/State.hpp"
 
 #include "../Command.hpp"
-#include "../Commands.hpp"
+#include "Commands.hpp"
 
 //#define DONT_CHDIR
 

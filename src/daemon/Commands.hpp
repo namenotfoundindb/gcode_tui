@@ -19,7 +19,7 @@
 
 #include <map>
 
-#include "Command.hpp"
+#include "../Command.hpp"
 
 #define cmdentry(cmdname) {#cmdname, Commands::cmdname}
 
