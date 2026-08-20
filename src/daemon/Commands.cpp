@@ -98,7 +98,7 @@ int Commands::Functions::init(CommandContext& context) {
 	int baudrate = std::stoul(context.usrcmd.arguments["baudrate"]);
 	int termios_baudrate;
 	try {
-		termios_baudrate = to_termios_baudrate.at(50);
+		termios_baudrate = to_termios_baudrate.at(baudrate);
 	} catch (std::out_of_range& e) {
 		write(context.client, "ERROR: No such baudrate!\n", 26);
 		return ReturnCommandErrored;
