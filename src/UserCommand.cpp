@@ -37,7 +37,7 @@
 //Parse a string into the UserCommand object
 int UserCommand::parse(std::string str) {
 	//go trough the string and find key-value pairs like:
-	//send file:/home/casi/test.gcode
+	//send file:/home/user/test.gcode
 	//^-command
 	//      ^-argument key
 	//               ^-argument value

@@ -265,3 +265,34 @@ Command Commands::status = {
 	.action = Commands::Functions::status,
 	.description = "Get status about the printer/print job"
 };
+
+
+int Commands::Functions::continue_print(CommandContext& context) {
+	PrinterState pstate;
+	{
+		std::lock_guard<std::mutex> lock(context.mtx);
+		pstate = context.printer.state;
+	}
+
+	if (pstate == Errored || pstate == Paused) {
+		send_command(Continue, context);
+
+		if (pstate == Errored) {
+			write(context.client, "Printer error cleared. ", 24);
+		}
+
+		if (pstate == Paused) {
+			write(context.client, "Continuing...\n", 15);
+		}
+	}
+
+	else write(context.client, "Nothing to continue!\n", 22);
+
+	return 0;
+}
+
+Command Commands::continue_print = {
+	.required_arguments = {},
+	.action = Commands::Functions::continue_print,
+	.description = "Continue printing after a pause/error"
+};
