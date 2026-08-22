@@ -93,6 +93,8 @@ int client_loop() {
 		else log("Accepted client");
 
 		while (true) {
+			write(client, &prompt_char, 1);
+
 			read_bytes = read(client, buffer, BUFFER_SIZE);
 
 			if (read_bytes < 0) {

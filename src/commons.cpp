@@ -21,3 +21,4 @@
 #define BUFFER_SIZE 256
 
 std::string daemon_socket_addres = "/run/gcode_tui_daemon.sock";
+char prompt_char = '$';
