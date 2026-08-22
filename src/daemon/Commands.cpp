@@ -42,6 +42,16 @@ void send_command(PrinterCommands cmd, CommandContext& context) {
 	context.cv.notify_one();
 }
 
+PrinterState get_printer_state(CommandContext& context) {
+	PrinterState pstate;
+	{
+		std::lock_guard<std::mutex> lock(context.mtx);
+		pstate = context.printer.state;
+	}
+	
+	return pstate;
+}
+
 //Actual command defintions and functions
 
 int Commands::Functions::echo(CommandContext& context) {
@@ -268,11 +278,7 @@ Command Commands::status = {
 
 
 int Commands::Functions::continue_print(CommandContext& context) {
-	PrinterState pstate;
-	{
-		std::lock_guard<std::mutex> lock(context.mtx);
-		pstate = context.printer.state;
-	}
+	PrinterState pstate = get_printer_state(context);
 
 	if (pstate == Errored || pstate == Paused) {
 		send_command(Continue, context);
@@ -295,4 +301,23 @@ Command Commands::continue_print = {
 	.required_arguments = {},
 	.action = Commands::Functions::continue_print,
 	.description = "Continue printing after a pause/error"
+};
+
+
+int Commands::Functions::pause(CommandContext& context) {
+	PrinterState pstate = get_printer_state(context);
+	if (pstate != Printing) {
+		write(context.client, "Printer not printing!\n", 23);
+		return ReturnCommandErrored;
+	}
+
+	send_command(Pause, context);
+	
+	return 0;
+}
+
+Command Commands::pause = {
+	.required_arguments = {},
+	.action = Commands::Functions::pause,
+	.description = "Pause print"
 };

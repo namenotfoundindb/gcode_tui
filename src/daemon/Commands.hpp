@@ -37,6 +37,8 @@ namespace Commands {
 
 		//originaly was just continue, but thats a keyword
 		int continue_print(CommandContext& context);
+		
+		int pause(CommandContext& context);
 	}
 
 	//Actual commands
@@ -49,6 +51,7 @@ namespace Commands {
 	extern Command terminal;
 	extern Command status;
 	extern Command continue_print;
+	extern Command pause;
 
 	//A map of all to commands
 	const std::map<std::string, Command&> list = {
@@ -63,7 +66,9 @@ namespace Commands {
 
 		//hand written entry beacause i want the Command continue_print
 		//to be mapped to the "continue" string, not "continue_print"
-		{"continue", Commands::continue_print}
+		{"continue", Commands::continue_print},
+
+		cmdentry(pause)
 	};
 }
 
