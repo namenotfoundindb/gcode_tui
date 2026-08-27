@@ -65,9 +65,9 @@ send file:/home/user/cube.gcode
 If it cannot open the file, it will tell you.
 
 ### Getting status
-The `status` command gives printer status. Just one caveat, the `state` filed is
-not in words like idle, printing, errored its a number because it was designed
-to be interpreted by the client.
+The `status` command gives printer status. Just one caveat, the `state` field
+is not in words like idle, printing, errored its a number because it was
+designed to be interpreted by the client.
 
 #### Printer states:
 0) Uninitialized
@@ -85,7 +85,7 @@ If you know some tehnical stuff, the enum that store these constants is in
 
 ## General daemon commands
 * `exit` - disconnect from the daemon
-* `shutdown` - shutdown the daemon (the is no warning if the printer is
+* `shutdown` - shutdown the daemon (there is no warning if the printer is
   printing)
 
 # Logs
